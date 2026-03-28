@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ song.title }} - Karaoke</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <a href="/">&larr; Back to Song List</a>
+    </header>
+    <main>
+        <h2>{{ song.title }} by {{ song.artist }}</h2>
+        <audio controls>
+            <source src="/static/{{ song.audio_file }}" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <pre class="lyrics">{{ song.lyrics }}</pre>
+    </main>
+</body>
+</html>
