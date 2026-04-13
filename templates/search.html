@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karaoke Remote</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --pink: #ff2d78;
+            --blue: #00d4ff;
+            --purple: #9b5de5;
+            --green: #4cffb0;
+            --dark: #08080f;
+            --dark2: #0f0f1a;
+            --dark3: #1a1a2e;
+            --border: rgba(255,255,255,0.08);
+            --text: #fff;
+            --text-dim: rgba(255,255,255,0.45);
+            --text-faint: rgba(255,255,255,0.2);
+        }
+
+        html, body {
+            min-height: 100%;
+            background: var(--dark);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Ambient ── */
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: 0;
+            background:
+                radial-gradient(ellipse 70% 60% at 15% 50%, rgba(155,93,229,0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 85% 20%, rgba(0,212,255,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* ── Top Bar ── */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1rem; height: 56px;
+            background: rgba(8,8,15,0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem; letter-spacing: 4px;
+            background: linear-gradient(90deg, var(--purple), var(--blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .topbar-right { display: flex; gap: 0.5rem; align-items: center; }
+
+        .pill-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px; cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            text-decoration: none;
+        }
+        .pill-btn:hover { color: var(--text); border-color: var(--pink); }
+        .pill-btn.active {
+            background: rgba(255,45,120,0.15);
+            border-color: var(--pink); color: var(--pink);
+        }
+
+        /* ── Tabs ── */
+        .tab-bar {
+            position: sticky; top: 56px; z-index: 99;
+            display: flex;
+            background: rgba(8,8,15,0.88);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .tab {
+            flex: 1; padding: 0.85rem;
+            background: none; border: none;
+            color: var(--text-faint);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem; letter-spacing: 3px;
+            cursor: pointer; position: relative;
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+            transition: color 0.2s;
+        }
+        .tab:hover { color: var(--text-dim); }
+        .tab.active { color: var(--text); }
+        .tab.active::after {
+            content: ''; position: absolute;
+            bottom: -1px; left: 20%; right: 20%;
+            height: 2px; background: var(--pink);
+            border-radius: 2px 2px 0 0;
+            box-shadow: 0 0 10px var(--pink);
+        }
+
+        .badge {
+            background: var(--pink); color: #fff;
+            font-size: 0.5rem; font-weight: 700;
+            min-width: 16px; height: 16px;
+            border-radius: 999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0 3px;
+            font-family: 'DM Sans', sans-serif; letter-spacing: 0;
+        }
+
+        /* ── Tab Panels ── */
+        .panel { display: none; position: relative; z-index: 1; }
+        .panel.active { display: block; }
+
+        /* ── SONGBOOK Panel ── */
+        .sl-controls {
+            position: sticky; top: 97px; z-index: 50;
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.8rem 1rem;
+            background: rgba(8,8,15,0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .sl-search {
+            flex: 1; min-width: 200px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 0.85rem; padding: 0.55rem 0.85rem;
+            outline: none; font-family: 'DM Sans', sans-serif;
+        }
+        .sl-search::placeholder { color: var(--text-faint); }
+        .sl-search:focus { border-color: var(--purple); }
+
+        .genre-wrap {
+            display: flex; gap: 0.35rem;
+            overflow-x: auto; scrollbar-width: none;
+            flex-shrink: 0;
+        }
+        .genre-wrap::-webkit-scrollbar { display: none; }
+
+        .genre-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.65rem; font-weight: 700;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .genre-btn:hover { color: var(--text); border-color: var(--purple); }
+        .genre-btn.active {
+            background: rgba(155,93,229,0.2);
+            border-color: var(--purple); color: var(--purple);
+        }
+
+        .sl-count {
+            font-size: 0.7rem; color: var(--text-faint);
+            white-space: nowrap;
+        }
+
+        .song-table {
+            width: 100%; border-collapse: collapse;
+        }
+        .song-table th {
+            position: sticky; top: 145px; z-index: 40;
+            background: var(--dark2);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.75rem; letter-spacing: 2px;
+            color: var(--text-dim);
+            padding: 0.55rem 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .song-table td {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .song-table tr:hover td { background: rgba(255,255,255,0.03); }
+        .song-table tr:active td { background: rgba(255,45,120,0.08); }
+
+        .s-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.05rem; color: var(--text-faint);
+            width: 40px; text-align: center;
+        }
+        .s-title { font-weight: 700; }
+        .s-artist { color: var(--text-dim); }
+        .s-genre {
+            background: rgba(155,93,229,0.12);
+            border: 1px solid rgba(155,93,229,0.2);
+            color: var(--purple);
+            font-size: 0.55rem; font-weight: 700;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px; white-space: nowrap;
+        }
+        .s-play {
+            background: rgba(255,45,120,0.12);
+            border: 1px solid rgba(255,45,120,0.25);
+            border-radius: 8px; color: var(--pink);
+            font-size: 0.65rem; font-weight: 700;
+            padding: 0.35rem 0.65rem; cursor: pointer;
+            transition: all 0.15s; white-space: nowrap;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .s-play:hover { background: rgba(255,45,120,0.25); }
+
+        /* ── SEARCH Panel ── */
+        .search-section { padding: 1rem; }
+        .search-section h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem; letter-spacing: 2px;
+            color: var(--text-dim); margin-bottom: 0.6rem;
+        }
+
+        .yt-row { display: flex; gap: 0.5rem; margin-bottom: 0.7rem; }
+
+        .yt-input {
+            flex: 1;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 0.85rem; padding: 0.6rem 0.85rem;
+            outline: none; font-family: 'DM Sans', sans-serif;
+        }
+        .yt-input::placeholder { color: var(--text-faint); }
+        .yt-input:focus { border-color: var(--pink); }
+
+        .yt-go {
+            background: var(--pink); border: none;
+            border-radius: 10px; color: #fff;
+            padding: 0.6rem 0.9rem; cursor: pointer;
+            display: flex; align-items: center;
+            transition: opacity 0.2s; flex-shrink: 0;
+        }
+        .yt-go:hover { opacity: 0.85; }
+        .yt-go:disabled { opacity: 0.35; cursor: default; }
+
+        .divider {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.6rem; color: var(--text-faint);
+            letter-spacing: 1px; text-transform: uppercase;
+            margin: 0.8rem 0;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: rgba(255,255,255,0.07);
+        }
+
+        .link-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+
+        .link-input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px; color: var(--text);
+            font-size: 0.8rem; padding: 0.55rem 0.8rem;
+            outline: none; font-family: 'DM Sans', sans-serif;
+        }
+        .link-input::placeholder { color: var(--text-faint); }
+        .link-input:focus { border-color: rgba(0,212,255,0.5); }
+
+        .link-go {
+            background: rgba(0,212,255,0.12);
+            border: 1px solid rgba(0,212,255,0.25);
+            border-radius: 10px; color: var(--blue);
+            font-size: 0.75rem; font-weight: 700;
+            padding: 0.55rem 0.75rem; cursor: pointer;
+            white-space: nowrap; transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .link-go:hover { background: rgba(0,212,255,0.22); }
+
+        .msg {
+            font-size: 0.7rem; color: var(--text-faint);
+            min-height: 1.2em; margin-bottom: 0.5rem;
+        }
+        .msg.ok { color: var(--green); }
+        .msg.err { color: var(--pink); }
+
+        .results { display: flex; flex-direction: column; gap: 0.4rem; }
+
+        .result-item {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.5rem 0.3rem;
+            border-radius: 10px;
+            transition: background 0.15s;
+        }
+        .result-item:hover { background: rgba(255,255,255,0.04); }
+
+        .r-thumb {
+            width: 80px; height: 56px;
+            object-fit: cover; border-radius: 6px;
+            background: #222; flex-shrink: 0;
+        }
+        .r-info { flex: 1; min-width: 0; }
+        .r-title {
+            font-size: 0.75rem; font-weight: 700;
+            display: -webkit-box; -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35;
+        }
+        .r-channel {
+            font-size: 0.62rem; color: var(--text-dim);
+            margin-top: 2px; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .r-add {
+            background: rgba(255,45,120,0.12);
+            border: 1px solid rgba(255,45,120,0.25);
+            border-radius: 8px; color: var(--pink);
+            font-size: 0.68rem; font-weight: 700;
+            padding: 0.4rem 0.65rem; cursor: pointer;
+            white-space: nowrap; transition: all 0.15s;
+            flex-shrink: 0; font-family: 'DM Sans', sans-serif;
+        }
+        .r-add:hover { background: rgba(255,45,120,0.25); }
+        .r-add.added {
+            background: rgba(76,255,176,0.1);
+            border-color: rgba(76,255,176,0.3);
+            color: var(--green); cursor: default;
+        }
+
+        .empty-msg {
+            text-align: center; color: var(--text-faint);
+            font-size: 0.8rem; padding: 2rem 1rem;
+        }
+
+        /* ── QUEUE Panel ── */
+        .queue-panel { padding: 0; }
+
+        .q-item {
+            display: flex; align-items: center; gap: 0.7rem;
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.035);
+            transition: background 0.15s;
+        }
+        .q-item:hover { background: rgba(255,255,255,0.04); }
+        .q-item.current {
+            background: rgba(255,45,120,0.07);
+            border-left: 3px solid var(--pink);
+        }
+        .q-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem; color: var(--text-faint);
+            min-width: 24px; text-align: center;
+        }
+        .q-item.current .q-num { color: var(--pink); }
+        .q-thumb {
+            width: 56px; height: 40px;
+            object-fit: cover; border-radius: 4px;
+            background: #222; flex-shrink: 0;
+        }
+        .q-info { flex: 1; min-width: 0; }
+        .q-title {
+            font-size: 0.75rem; font-weight: 700;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .q-item.current .q-title { color: var(--pink); }
+        .q-channel { font-size: 0.62rem; color: var(--text-dim); margin-top: 1px; }
+        .q-now {
+            font-size: 0.55rem; font-weight: 700;
+            color: var(--pink); letter-spacing: 1px;
+            text-transform: uppercase; margin-top: 2px;
+        }
+        .rm-btn {
+            background: none; border: none;
+            color: var(--text-faint); cursor: pointer;
+            font-size: 0.8rem; padding: 4px 6px;
+            border-radius: 6px; transition: all 0.2s; flex-shrink: 0;
+        }
+        .rm-btn:hover { color: var(--pink); background: rgba(255,45,120,0.1); }
+
+        .queue-actions {
+            position: sticky; bottom: 0;
+            display: flex; gap: 0.5rem;
+            padding: 0.8rem 1rem;
+            background: rgba(8,8,15,0.95);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border);
+        }
+        .skip-btn {
+            flex: 1; padding: 0.75rem;
+            background: linear-gradient(135deg, var(--pink), #a000c8);
+            border: none; border-radius: 10px;
+            color: #fff;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem; letter-spacing: 3px;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 20px rgba(255,45,120,0.3);
+        }
+        .skip-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(255,45,120,0.5); }
+        .skip-btn:disabled {
+            background: rgba(255,255,255,0.07); color: var(--text-faint);
+            box-shadow: none; cursor: default; transform: none;
+        }
+        .clear-btn {
+            padding: 0.75rem 1.2rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text-dim);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem; letter-spacing: 2px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .clear-btn:hover { border-color: var(--pink); color: var(--pink); }
+        .clear-btn:disabled { opacity: 0.3; cursor: default; }
+
+        @media (max-width: 500px) {
+            .song-table th:nth-child(1), .song-table td:nth-child(1) { display: none; }
+            .song-table th:nth-child(4), .song-table td:nth-child(4) { display: none; }
+            .sl-controls { top: 97px; }
+            .song-table th { top: 152px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Top Bar ── -->
+<header class="topbar">
+    <div class="logo">🎤 REMOTE</div>
+    <div class="topbar-right">
+        <a class="pill-btn" href="/" target="_blank">Open TV Screen</a>
+    </div>
+</header>
+
+<!-- ── Tabs ── -->
+<div class="tab-bar">
+    <button class="tab active" data-tab="songbook" onclick="switchTab('songbook')">SONG BOOK</button>
+    <button class="tab" data-tab="search" onclick="switchTab('search')">YOUTUBE SEARCH</button>
+    <button class="tab" data-tab="queue" onclick="switchTab('queue')">
+        QUEUE <span class="badge" id="q-badge">0</span>
+    </button>
+</div>
+
+<!-- ═══════ SONGBOOK ═══════ -->
+<div class="panel active" id="panel-songbook">
+    <div class="sl-controls">
+        <input class="sl-search" id="sl-search" placeholder="Search title or artist..."
+               oninput="filterSongs()">
+        <div class="genre-wrap" id="genre-wrap"></div>
+        <span class="sl-count" id="sl-count"></span>
+    </div>
+    <table class="song-table">
+        <thead>
+            <tr>
+                <th style="width:40px">#</th>
+                <th>TITLE</th>
+                <th>ARTIST</th>
+                <th style="width:70px">GENRE</th>
+                <th style="width:70px"></th>
+            </tr>
+        </thead>
+        <tbody id="sl-body"></tbody>
+    </table>
+</div>
+
+<!-- ═══════ YOUTUBE SEARCH ═══════ -->
+<div class="panel" id="panel-search">
+    <div class="search-section">
+        <h3>SEARCH YOUTUBE</h3>
+        <div class="yt-row">
+            <input class="yt-input" id="yt-input" placeholder="Search for karaoke..."
+                   onkeydown="if(event.key==='Enter')ytSearch()">
+            <button class="yt-go" id="yt-go" onclick="ytSearch()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="divider">or paste a link</div>
+
+        <div class="link-row">
+            <input class="link-input" id="link-input" placeholder="https://youtube.com/watch?v=..."
+                   onkeydown="if(event.key==='Enter')addLink()">
+            <button class="link-go" onclick="addLink()">+ Add</button>
+        </div>
+
+        <div class="msg" id="msg"></div>
+
+        <div class="results" id="results">
+            <div class="empty-msg">Search for a karaoke song above</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════ QUEUE ═══════ -->
+<div class="panel" id="panel-queue">
+    <div class="queue-panel">
+        <div id="queue-list"></div>
+        <div class="queue-actions">
+            <button class="skip-btn" id="skip-btn" onclick="skipSong()" disabled>▶ NEXT SONG</button>
+            <button class="clear-btn" id="clear-btn" onclick="clearQueue()" disabled>CLEAR</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+let queue = {{ queue | tojson }};
+let allSongs = [];
+let activeGenre = '';
+const genres = {{ genres | tojson }};
+
+// ── Tabs ──
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+    if (tab === 'search') setTimeout(() => document.getElementById('yt-input').focus(), 60);
+    if (tab === 'songbook') setTimeout(() => document.getElementById('sl-search').focus(), 60);
+}
+
+// ── Song Book ──
+async function loadSongs() {
+    const data = await fetch('/songlist').then(r => r.json());
+    allSongs = data.songs;
+    renderGenres();
+    renderSongTable(allSongs);
+}
+
+function renderGenres() {
+    const wrap = document.getElementById('genre-wrap');
+    const btns = [`<button class="genre-btn${activeGenre===''?' active':''}" onclick="setGenre('')">All</button>`];
+    genres.forEach(g => {
+        btns.push(`<button class="genre-btn${activeGenre===g?' active':''}" onclick="setGenre('${esc(g)}')">${esc(g)}</button>`);
+    });
+    wrap.innerHTML = btns.join('');
+}
+
+function setGenre(g) { activeGenre = g; renderGenres(); filterSongs(); }
+
+function filterSongs() {
+    const q = document.getElementById('sl-search').value.toLowerCase().trim();
+    let list = allSongs;
+    if (activeGenre) list = list.filter(s => s.genre === activeGenre);
+    if (q) list = list.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q));
+    renderSongTable(list);
+}
+
+function renderSongTable(songs) {
+    document.getElementById('sl-count').textContent = songs.length + ' songs';
+    const body = document.getElementById('sl-body');
+    if (!songs.length) {
+        body.innerHTML = '<tr><td colspan="5" class="empty-msg">No songs found</td></tr>';
+        return;
+    }
+    body.innerHTML = songs.map(s => `
+        <tr>
+            <td class="s-num">${s.id}</td>
+            <td class="s-title">${esc(s.title)}</td>
+            <td class="s-artist">${esc(s.artist)}</td>
+            <td><span class="s-genre">${esc(s.genre)}</span></td>
+            <td><button class="s-play" onclick="songSearch('${esc(s.title).replace(/'/g,"\\'")} ${esc(s.artist).replace(/'/g,"\\'")} karaoke')">Search</button></td>
+        </tr>`).join('');
+}
+
+function songSearch(query) {
+    switchTab('search');
+    document.getElementById('yt-input').value = query;
+    ytSearch();
+}
+
+// ── YouTube Search ──
+async function ytSearch() {
+    const input = document.getElementById('yt-input');
+    const btn = document.getElementById('yt-go');
+    const res = document.getElementById('results');
+    const q = input.value.trim();
+    if (!q) return;
+
+    btn.disabled = true;
+    res.innerHTML = '<div class="empty-msg">Searching...</div>';
+
+    try {
+        const data = await fetch('/youtube_search?q=' + encodeURIComponent(q)).then(r => r.json());
+        res.innerHTML = '';
+        if (!data.results.length) {
+            res.innerHTML = '<div class="empty-msg">No results found.</div>';
+            return;
+        }
+        data.results.forEach(v => {
+            const div = document.createElement('div');
+            div.className = 'result-item';
+            div.innerHTML = `
+                <img class="r-thumb" src="${esc(v.thumbnail)}" alt="">
+                <div class="r-info">
+                    <div class="r-title">${esc(v.title)}</div>
+                    <div class="r-channel">${esc(v.channel)}</div>
+                </div>
+                <button class="r-add" data-id="${esc(v.id)}" data-title="${esc(v.title)}" data-channel="${esc(v.channel)}">+ Add</button>`;
+            div.querySelector('.r-add').addEventListener('click', function() {
+                const b = this;
+                b.disabled = true; b.textContent = '...';
+                addToQueue(b.dataset.id, b.dataset.title, b.dataset.channel).then(() => {
+                    b.classList.add('added'); b.textContent = '✓ Queued';
+                });
+            });
+            res.appendChild(div);
+        });
+    } catch {
+        res.innerHTML = '<div class="empty-msg">Search failed. Try again.</div>';
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// ── Add Link ──
+async function addLink() {
+    const input = document.getElementById('link-input');
+    const msg = document.getElementById('msg');
+    const link = input.value.trim();
+    if (!link) return;
+    msg.className = 'msg'; msg.textContent = 'Adding...';
+    const fd = new FormData(); fd.append('youtube_link', link);
+    const data = await fetch('/add_link_to_queue', { method: 'POST', body: fd }).then(r => r.json());
+    if (data.success) {
+        queue = data.queue; renderQueue();
+        input.value = '';
+        msg.className = 'msg ok'; msg.textContent = '✓ Added to queue!';
+        setTimeout(() => { msg.textContent = ''; }, 3000);
+    } else {
+        msg.className = 'msg err';
+        msg.textContent = data.error ? '✗ ' + data.error : '✗ Invalid YouTube link.';
+    }
+}
+
+// ── Queue ──
+async function addToQueue(video_id, title, channel) {
+    const fd = new FormData();
+    fd.append('video_id', video_id);
+    fd.append('title', title);
+    fd.append('channel', channel);
+    const data = await fetch('/add_to_queue', { method: 'POST', body: fd }).then(r => r.json());
+    if (data.success) { queue = data.queue; renderQueue(); }
+}
+
+async function removeFromQueue(idx) {
+    const fd = new FormData(); fd.append('idx', idx);
+    const data = await fetch('/remove_from_queue', { method: 'POST', body: fd }).then(r => r.json());
+    if (data.success) { queue = data.queue; renderQueue(); }
+}
+
+async function skipSong() {
+    const btn = document.getElementById('skip-btn');
+    btn.disabled = true;
+    const data = await fetch('/skip_song', { method: 'POST' }).then(r => r.json());
+    if (data.success) { queue = data.queue; renderQueue(); }
+    btn.disabled = queue.length <= 1;
+}
+
+async function clearQueue() {
+    if (!confirm('Clear the entire queue?')) return;
+    const data = await fetch('/clear_queue', { method: 'POST' }).then(r => r.json());
+    if (data.success) { queue = []; renderQueue(); }
+}
+
+function renderQueue() {
+    const list = document.getElementById('queue-list');
+    const badge = document.getElementById('q-badge');
+    const skipBtn = document.getElementById('skip-btn');
+    const clearBtn = document.getElementById('clear-btn');
+
+    badge.textContent = queue.length;
+    skipBtn.disabled = queue.length <= 1;
+    clearBtn.disabled = queue.length === 0;
+
+    if (!queue.length) {
+        list.innerHTML = '<div class="empty-msg" style="padding:3rem 1rem;">Queue is empty — add songs from Song Book or YouTube Search</div>';
+        return;
+    }
+
+    list.innerHTML = queue.map((item, i) => `
+        <div class="q-item${i === 0 ? ' current' : ''}">
+            <span class="q-num">${i + 1}</span>
+            <img class="q-thumb" src="https://img.youtube.com/vi/${esc(item.video_id)}/default.jpg" alt="">
+            <div class="q-info">
+                <div class="q-title">${esc(item.title)}</div>
+                <div class="q-channel">${esc(item.channel)}</div>
+                ${i === 0 ? '<div class="q-now">Now Playing</div>' : ''}
+            </div>
+            <button class="rm-btn" onclick="removeFromQueue(${i})">✕</button>
+        </div>`).join('');
+}
+
+// Poll to stay in sync with TV screen
+async function pollQueue() {
+    try {
+        const data = await fetch('/api/queue').then(r => r.json());
+        if (JSON.stringify(data.queue) !== JSON.stringify(queue)) {
+            queue = data.queue;
+            renderQueue();
+        }
+    } catch {}
+}
+setInterval(pollQueue, 3000);
+
+// Init
+loadSongs();
+renderQueue();
+</script>
+</body>
+</html>
