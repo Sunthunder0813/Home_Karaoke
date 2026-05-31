@@ -1,9 +1,6 @@
 #!/bin/sh
-set -eu
+set -e
 
-echo "Starting app, PORT=${PORT:-<unset>}"
-if [ -z "${PORT:-}" ]; then
-  PORT=8080
-fi
-
-exec gunicorn --bind 0.0.0.0:${PORT} app:app
+PORT="${PORT:-8080}"
+echo "Starting app on port $PORT"
+exec gunicorn --bind "0.0.0.0:$PORT" app:app

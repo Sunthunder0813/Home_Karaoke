@@ -341,10 +341,10 @@ def seed_songlist():
         ('Back in Black', 'AC/DC', 'Rock'),
         ('Highway to Hell', 'AC/DC', 'Rock'),
         ('Thunderstruck', 'AC/DC', 'Rock'),
-        ('Sweet Child O\' Mine', 'Guns N\' Roses', 'Rock'),
-        ('November Rain', 'Guns N\' Roses', 'Rock'),
-        ('Paradise City', 'Guns N\' Roses', 'Rock'),
-        ('Livin\' on a Prayer', 'Bon Jovi', 'Rock'),
+        ("Sweet Child O' Mine", "Guns N' Roses", 'Rock'),
+        ('November Rain', "Guns N' Roses", 'Rock'),
+        ('Paradise City', "Guns N' Roses", 'Rock'),
+        ("Livin' on a Prayer", 'Bon Jovi', 'Rock'),
         ("It's My Life", 'Bon Jovi', 'Rock'),
         ('You Give Love a Bad Name', 'Bon Jovi', 'Rock'),
         ('More Than a Feeling', 'Boston', 'Rock'),
@@ -354,7 +354,7 @@ def seed_songlist():
         ('Born to Run', 'Bruce Springsteen', 'Rock'),
         ('Eye of the Tiger', 'Survivor', 'Rock'),
         ('Africa', 'Toto', 'Rock'),
-        ('Don\'t Stop Me Now', 'Queen', 'Rock'),
+        ("Don't Stop Me Now", 'Queen', 'Rock'),
 
         # ── Country ──
         ('Jolene', 'Dolly Parton', 'Country'),
@@ -370,9 +370,9 @@ def seed_songlist():
         ('Before He Cheats', 'Carrie Underwood', 'Country'),
         ('Crazy', 'Patsy Cline', 'Country'),
         ('Stand By Your Man', 'Tammy Wynette', 'Country'),
-        ('Boot Scootin\' Boogie', 'Brooks & Dunn', 'Country'),
+        ("Boot Scootin' Boogie", 'Brooks & Dunn', 'Country'),
         ('Achy Breaky Heart', 'Billy Ray Cyrus', 'Country'),
-        ('Your Cheatin\' Heart', 'Hank Williams', 'Country'),
+        ("Your Cheatin' Heart", 'Hank Williams', 'Country'),
         ('The Gambler', 'Kenny Rogers', 'Country'),
         ('Islands in the Stream', 'Dolly Parton & Kenny Rogers', 'Country'),
         ('Cruise', 'Florida Georgia Line', 'Country'),
@@ -443,7 +443,7 @@ def seed_songlist():
         ('Dahan', 'December Avenue', 'OPM'),
         ('Kilometro', 'Sarah Geronimo', 'OPM'),
         ('Tala', 'Sarah Geronimo', 'OPM'),
-        ('Pangako Sa \'Yo', 'Vina Morales', 'OPM'),
+        ("Pangako Sa 'Yo", 'Vina Morales', 'OPM'),
         ('Ikaw Lamang', 'Silent Sanctuary', 'OPM'),
         ('Pasensya Ka Na', 'Silent Sanctuary', 'OPM'),
         ('Hinahanap-Hanap Kita', 'Rivermaya', 'OPM'),
@@ -519,7 +519,7 @@ def seed_songlist():
         ('Payphone', 'Maroon 5', 'Dance'),
         ('This Love', 'Maroon 5', 'Dance'),
         ('Raise Your Glass', 'P!nk', 'Dance'),
-        ("So What", 'P!nk', 'Dance'),
+        ('So What', 'P!nk', 'Dance'),
         ('Uptown Girl', 'Billy Joel', 'Dance'),
         ('Piano Man', 'Billy Joel', 'Dance'),
         ("Livin' on a Prayer", 'Bon Jovi', 'Dance'),
@@ -539,7 +539,7 @@ def seed_songlist():
         ("Ain't No Mountain High Enough", 'Marvin Gaye & Tammi Terrell', 'Duet'),
         ('Endless Love', 'Diana Ross & Lionel Richie', 'Duet'),
         ('Under Pressure', 'Queen & David Bowie', 'Duet'),
-        ('Somethin\' Stupid', 'Frank & Nancy Sinatra', 'Duet'),
+        ("Somethin' Stupid", 'Frank & Nancy Sinatra', 'Duet'),
         ('I Got You Babe', 'Sonny & Cher', 'Duet'),
         ('The Prayer', 'Andrea Bocelli & Celine Dion', 'Duet'),
         ('Time of My Life', 'Dirty Dancing Soundtrack', 'Duet'),
@@ -547,7 +547,7 @@ def seed_songlist():
         ('Up Where We Belong', 'Joe Cocker & Jennifer Warnes', 'Duet'),
         ('Beauty and the Beast', 'Angela Lansbury', 'Duet'),
         ('Can You Feel the Love Tonight', 'Elton John', 'Duet'),
-        ('You Don\'t Bring Me Flowers', 'Barbra Streisand & Neil Diamond', 'Duet'),
+        ("You Don't Bring Me Flowers", 'Barbra Streisand & Neil Diamond', 'Duet'),
         ('Nobody Wants to Be Lonely', 'Ricky Martin & Christina Aguilera', 'Duet'),
 
         # ── 90s / 2000s Throwback ──
@@ -559,14 +559,14 @@ def seed_songlist():
         ('Torn', 'Natalie Imbruglia', '90s/2000s'),
         ('Zombie', 'The Cranberries', '90s/2000s'),
         ('Kiss Me', 'Sixpence None the Richer', '90s/2000s'),
-        ("Genie in a Bottle", 'Christina Aguilera', '90s/2000s'),
+        ('Genie in a Bottle', 'Christina Aguilera', '90s/2000s'),
         ('Beautiful', 'Christina Aguilera', '90s/2000s'),
         ("Livin' La Vida Loca", 'Ricky Martin', '90s/2000s'),
         ('Blue (Da Ba Dee)', 'Eiffel 65', '90s/2000s'),
         ('Barbie Girl', 'Aqua', '90s/2000s'),
         ('Bye Bye Bye', 'NSYNC', '90s/2000s'),
-        ("I Want It That Way", 'Backstreet Boys', '90s/2000s'),
-        ('Everybody (Backstreet\'s Back)', 'Backstreet Boys', '90s/2000s'),
+        ('I Want It That Way', 'Backstreet Boys', '90s/2000s'),
+        ("Everybody (Backstreet's Back)", 'Backstreet Boys', '90s/2000s'),
         ('As Long As You Love Me', 'Backstreet Boys', '90s/2000s'),
         ('Larger Than Life', 'Backstreet Boys', '90s/2000s'),
         ('Smooth', 'Santana ft. Rob Thomas', '90s/2000s'),
@@ -595,7 +595,7 @@ def seed_songlist():
         ("You've Got a Friend in Me", 'Toy Story', 'Disney'),
         ('Colors of the Wind', 'Pocahontas', 'Disney'),
         ('Reflection', 'Mulan Soundtrack', 'Disney'),
-        ('How Far I\'ll Go', 'Moana Soundtrack', 'Disney'),
+        ("How Far I'll Go", 'Moana Soundtrack', 'Disney'),
         ("We Don't Talk About Bruno", 'Encanto', 'Disney'),
         ('Surface Pressure', 'Encanto', 'Disney'),
         ('Into the Unknown', 'Frozen 2', 'Disney'),
@@ -612,8 +612,12 @@ def seed_songlist():
     print(f'Seeded {len(songs)} songs into songbook.')
 
 
+# ── Init DB at startup (works with gunicorn, not just __main__) ───────────────
+
+with app.app_context():
+    db.create_all()
+    seed_songlist()
+
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        seed_songlist()
-        app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0')
