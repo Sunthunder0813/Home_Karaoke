@@ -333,19 +333,47 @@
             color: rgba(255,255,255,0.25); text-transform: uppercase;
         }
 
-        .score-next-btn {
-            margin-top: 0.6rem;
-            background: linear-gradient(135deg, var(--pink), #a000c8);
-            border: none; border-radius: 999px;
-            color: #fff; font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.1rem; letter-spacing: 2px;
-            padding: 0.75rem 2.2rem; cursor: pointer;
-            box-shadow: 0 4px 20px rgba(255,45,120,0.4);
-            opacity: 0; transform: translateY(8px);
-            transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.2s;
+        .countdown-wrap {
+            position: relative;
+            width: 68px; height: 68px;
+            margin-top: 0.5rem;
         }
-        .score-next-btn.show { opacity: 1; transform: translateY(0); }
-        .score-next-btn:hover { box-shadow: 0 6px 28px rgba(255,45,120,0.6); }
+        .countdown-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .countdown-ring-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 5; }
+        .countdown-ring-fg {
+            fill: none; stroke: url(#countdownGradient);
+            stroke-width: 5; stroke-linecap: round;
+            stroke-dasharray: 175.9;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);
+            filter: drop-shadow(0 0 6px rgba(0,212,255,0.5));
+        }
+        .countdown-ring-fg.urgent {
+            filter: drop-shadow(0 0 10px rgba(255,45,120,0.75));
+        }
+        .countdown-number {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem; letter-spacing: 1px;
+            color: rgba(255,255,255,0.85);
+            transition: color 0.3s ease;
+        }
+        .countdown-number.tick {
+            animation: countdown-tick 0.35s cubic-bezier(.3,1.6,.4,1);
+        }
+        .countdown-number.urgent { color: var(--pink); }
+        @keyframes countdown-tick {
+            0% { transform: scale(1.35); }
+            100% { transform: scale(1); }
+        }
+        .countdown-wrap.urgent {
+            animation: countdown-pulse 1s ease-in-out infinite;
+        }
+        @keyframes countdown-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
 
         /* Confetti */
         .confetti-layer {
@@ -419,7 +447,6 @@
             .up-next-title { font-size: 0.6rem; max-width: 120px; margin-right: 0.8rem; }
             .ticker-inner { font-size: 0.5rem; letter-spacing: 1px; }
             .score-remark { font-size: 1.15rem; }
-            .score-next-btn { padding: 0.65rem 1.6rem; font-size: 0.95rem; }
         }
 
         @media (max-height: 500px) and (orientation: landscape) {
@@ -435,6 +462,84 @@
             .score-content { gap: 0.4rem; }
             .score-ring-wrap { width: min(22vh, 160px); height: min(22vh, 160px); }
             .score-remark { font-size: 1.1rem; }
+        }
+
+        /* ── Rotate Device Prompt (mobile only, toggle-controlled) ── */
+        .rotate-prompt {
+            position: fixed; inset: 0; z-index: 2000;
+            display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: 1.2rem; text-align: center;
+            background: var(--dark);
+            padding: 5vh 8vw;
+        }
+        .rotate-prompt::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 50% 40%, rgba(255,45,120,0.15) 0%, transparent 60%);
+            animation: bg-drift 12s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .rotate-icon {
+            position: relative; font-size: 4rem;
+            animation: rotate-shake 1.8s ease-in-out infinite;
+        }
+        @keyframes rotate-shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-90deg); }
+            60% { transform: rotate(-90deg); }
+            85% { transform: rotate(0deg); }
+        }
+        .rotate-prompt h2 {
+            position: relative;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem; letter-spacing: 3px;
+            color: rgba(255,255,255,0.85);
+        }
+        .rotate-prompt p {
+            position: relative;
+            font-size: 0.85rem; color: rgba(255,255,255,0.35);
+            max-width: 65vw;
+        }
+        .rotate-prompt .rp-dismiss {
+            position: relative;
+            margin-top: 0.5rem;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 999px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.75rem; letter-spacing: 1px;
+            padding: 0.5rem 1.4rem;
+            cursor: pointer;
+        }
+        .rotate-prompt .rp-dismiss:hover { border-color: var(--blue); color: var(--blue); }
+
+        /* Only show the prompt when locked ON, mobile width, and portrait */
+        @media (max-width: 900px) and (orientation: portrait) {
+            body.landscape-lock-on .rotate-prompt { display: flex; }
+        }
+
+        /* ── Landscape lock toggle button ── */
+        .landscape-toggle {
+            display: flex; align-items: center; gap: 0.3rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 999px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.6rem; letter-spacing: 0.5px;
+            padding: 0.3rem 0.7rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .landscape-toggle.on {
+            background: rgba(255,45,120,0.18);
+            border-color: var(--pink);
+            color: var(--pink);
+        }
+        .landscape-toggle:hover { border-color: var(--blue); }
+
+        @media (max-width: 640px) {
+            .landscape-toggle { font-size: 0.55rem; padding: 0.25rem 0.55rem; }
         }
 
         /* Samsung TV class */
@@ -478,9 +583,18 @@ if (window.innerWidth < 1100 && window.innerHeight < 600 && window.devicePixelRa
     <div class="start-hint">Press OK on your remote or click anywhere</div>
 </div>
 
+<!-- Rotate device prompt (mobile only, shown when lock is ON and in portrait) -->
+<div class="rotate-prompt" id="rotate-prompt">
+    <div class="rotate-icon">📱</div>
+    <h2>Rotate Your Device</h2>
+    <p>Karaoke Night works best in landscape mode. Turn your phone sideways to continue.</p>
+    <button class="rp-dismiss" onclick="toggleLandscapeLock(false)">Continue in Portrait</button>
+</div>
+
 <div id="app">
     <header class="topbar">
         <div class="logo">🎤 KARAOKE</div>
+        <button class="landscape-toggle" id="landscape-toggle" onclick="toggleLandscapeLock()">🔒 Landscape</button>
         <div class="remote-hint">Add songs at <b>/search</b></div>
     </header>
 
@@ -500,6 +614,8 @@ if (window.innerWidth < 1100 && window.innerHeight < 600 && window.devicePixelRa
         </div>
     </div>
 </div>
+
+<audio id="score-audio" src="/static/score-sting.mp3" preload="auto"></audio>
 
 <!-- Score screen -->
 <div class="score-screen" id="score-screen">
@@ -524,8 +640,20 @@ if (window.innerWidth < 1100 && window.innerHeight < 600 && window.devicePixelRa
             <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
         </div>
         <div class="score-remark" id="score-remark"></div>
-        <div class="score-sub">Next song coming up</div>
-        <button class="score-next-btn" id="score-next-btn" onclick="finishScoreScreen()">NEXT SONG ▶</button>
+        <div class="score-sub">Next song in</div>
+        <div class="countdown-wrap" id="countdown-wrap">
+            <svg class="countdown-ring" viewBox="0 0 68 68">
+                <defs>
+                    <linearGradient id="countdownGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#00d4ff"/>
+                        <stop offset="100%" stop-color="#ff2d78"/>
+                    </linearGradient>
+                </defs>
+                <circle class="countdown-ring-bg" cx="34" cy="34" r="28"/>
+                <circle class="countdown-ring-fg" id="countdown-ring-fg" cx="34" cy="34" r="28"/>
+            </svg>
+            <div class="countdown-number" id="countdown-number">15</div>
+        </div>
     </div>
 </div>
 
@@ -554,10 +682,54 @@ function onYouTubeIframeAPIReady() {
     if (started) renderAll();
 }
 
+// ── Landscape lock toggle ──
+function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerWidth < 900;
+}
+
+function updateLandscapeToggleBtn(enabled) {
+    const btn = document.getElementById('landscape-toggle');
+    if (!btn) return;
+    btn.textContent = enabled ? '🔒 Landscape' : '🔓 Landscape';
+    btn.classList.toggle('on', enabled);
+}
+
+function toggleLandscapeLock(force) {
+    const current = document.body.classList.contains('landscape-lock-on');
+    const enabled = typeof force === 'boolean' ? force : !current;
+    document.body.classList.toggle('landscape-lock-on', enabled);
+    try { localStorage.setItem('karaokeLandscapeLock', enabled ? '1' : '0'); } catch (e) {}
+    updateLandscapeToggleBtn(enabled);
+    if (enabled) tryLockLandscape();
+}
+
+function initLandscapeLock() {
+    let stored = null;
+    try { stored = localStorage.getItem('karaokeLandscapeLock'); } catch (e) {}
+    const enabled = stored === null ? true : stored === '1'; // default ON
+    document.body.classList.toggle('landscape-lock-on', enabled);
+    updateLandscapeToggleBtn(enabled);
+}
+initLandscapeLock();
+
+async function tryLockLandscape() {
+    try {
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape');
+        }
+    } catch (e) {
+        // Unsupported/blocked (e.g. iOS Safari) — the rotate-prompt overlay covers this case instead.
+    }
+}
+
 // ── Start screen ──
 function startKaraoke() {
     started = true;
     document.getElementById('start-screen').classList.add('hidden');
+    const lockEnabled = document.body.classList.contains('landscape-lock-on');
+    if (lockEnabled && isMobileDevice() && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().then(tryLockLandscape).catch(tryLockLandscape);
+    }
     renderAll();
     setInterval(pollQueue, 2000);
 }
@@ -638,9 +810,6 @@ function beginScoreSequence() {
     remarkEl.textContent = meta.remark;
     remarkEl.classList.remove('show');
 
-    const nextBtn = document.getElementById('score-next-btn');
-    nextBtn.classList.remove('show');
-
     document.getElementById('confetti-layer').innerHTML = '';
 
     const screen = document.getElementById('score-screen');
@@ -648,6 +817,14 @@ function beginScoreSequence() {
 
     // Fade out video underneath
     document.getElementById('video-area').classList.add('fading');
+
+    // Play the hype sting
+    const scoreAudio = document.getElementById('score-audio');
+    if (scoreAudio) {
+        scoreAudio.currentTime = 0;
+        scoreAudio.volume = 0.85;
+        scoreAudio.play().catch(() => {}); // ignore if autoplay is blocked
+    }
 
     // Animate the ring + counting number
     setTimeout(() => {
@@ -665,12 +842,58 @@ function beginScoreSequence() {
         if (score >= 85) spawnConfetti(70);
         else if (score >= 70) spawnConfetti(30);
     }, 1600);
-    // Next button
-    setTimeout(() => nextBtn.classList.add('show'), 2100);
+    // Countdown ring + number (15s auto-advance)
+    startCountdown(15);
 
-    // Auto-advance after a few seconds
+    // Auto-advance after the score fully plays out
     if (scoreTimer) clearTimeout(scoreTimer);
-    scoreTimer = setTimeout(finishScoreScreen, 6500);
+    scoreTimer = setTimeout(finishScoreScreen, 15000);
+}
+
+let countdownTimer = null;
+const COUNTDOWN_CIRC = 175.9;
+
+function startCountdown(seconds) {
+    if (countdownTimer) clearInterval(countdownTimer);
+    const ring = document.getElementById('countdown-ring-fg');
+    const numEl = document.getElementById('countdown-number');
+    const wrap = document.getElementById('countdown-wrap');
+    let remaining = seconds;
+
+    ring.classList.remove('urgent');
+    numEl.classList.remove('urgent');
+    wrap.classList.remove('urgent');
+    ring.style.transition = 'none';
+    ring.style.strokeDashoffset = 0;
+    numEl.textContent = remaining;
+    // Force reflow so the next transition actually animates from full ring
+    void ring.getBoundingClientRect();
+    ring.style.transition = 'stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)';
+
+    countdownTimer = setInterval(() => {
+        remaining--;
+        if (remaining < 0) { clearInterval(countdownTimer); return; }
+
+        numEl.textContent = remaining;
+        numEl.classList.remove('tick');
+        void numEl.offsetWidth; // restart animation
+        numEl.classList.add('tick');
+
+        const offset = COUNTDOWN_CIRC * (1 - remaining / seconds);
+        ring.style.strokeDashoffset = offset;
+
+        if (remaining <= 3) {
+            ring.classList.add('urgent');
+            numEl.classList.add('urgent');
+            wrap.classList.add('urgent');
+        }
+    }, 1000);
+}
+
+function stopCountdown() {
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    const wrap = document.getElementById('countdown-wrap');
+    if (wrap) wrap.classList.remove('urgent');
 }
 
 function animateCount(target, duration) {
@@ -689,8 +912,15 @@ async function finishScoreScreen() {
     if (!showingScore) return;
     showingScore = false;
     if (scoreTimer) clearTimeout(scoreTimer);
+    stopCountdown();
 
     document.getElementById('score-screen').classList.remove('visible');
+
+    const scoreAudio = document.getElementById('score-audio');
+    if (scoreAudio) {
+        scoreAudio.pause();
+        scoreAudio.currentTime = 0;
+    }
 
     try {
         const data = await fetch('/skip_song', { method: 'POST' }).then(r => r.json());
