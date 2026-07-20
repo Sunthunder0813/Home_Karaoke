@@ -7,8 +7,8 @@ import re
 from youtube_api import bp as youtube_bp
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'replace-this-with-a-secret-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///karaoke.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-fallback-key')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///karaoke.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.register_blueprint(youtube_bp)
@@ -27,7 +27,6 @@ class Song(db.Model):
 
 class QueueItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    position = db.Column(db.Integer, nullable=False)
     video_id = db.Column(db.String(20), nullable=False)
     title = db.Column(db.String(300), nullable=False)
     channel = db.Column(db.String(200), default='')
@@ -36,15 +35,8 @@ class QueueItem(db.Model):
 # ── Queue helpers (DB-backed, shared across all clients) ──────────────────────
 
 def get_queue():
-    items = QueueItem.query.order_by(QueueItem.position).all()
+    items = QueueItem.query.order_by(QueueItem.id).all()
     return [{'video_id': i.video_id, 'title': i.title, 'channel': i.channel} for i in items]
-
-
-def _reindex():
-    items = QueueItem.query.order_by(QueueItem.position).all()
-    for idx, item in enumerate(items):
-        item.position = idx
-    db.session.commit()
 
 
 def extract_video_id(url: str):
@@ -108,9 +100,7 @@ def add_to_queue():
     title = request.form.get('title')
     channel = request.form.get('channel', '')
     if video_id and title:
-        max_pos = db.session.query(db.func.max(QueueItem.position)).scalar()
-        pos = (max_pos or 0) + 1
-        db.session.add(QueueItem(position=pos, video_id=video_id, title=title, channel=channel))
+        db.session.add(QueueItem(video_id=video_id, title=title, channel=channel))
         db.session.commit()
         return jsonify({'success': True, 'queue': get_queue()})
     return jsonify({'success': False})
@@ -160,9 +150,7 @@ def add_link_to_queue():
     except Exception:
         return jsonify({'success': False, 'error': 'Failed to check video'})
 
-    max_pos = db.session.query(db.func.max(QueueItem.position)).scalar()
-    pos = (max_pos or 0) + 1
-    db.session.add(QueueItem(position=pos, video_id=video_id, title=title, channel=channel))
+    db.session.add(QueueItem(video_id=video_id, title=title, channel=channel))
     db.session.commit()
     return jsonify({'success': True, 'queue': get_queue()})
 
@@ -170,11 +158,10 @@ def add_link_to_queue():
 @app.route('/remove_from_queue', methods=['POST'])
 def remove_from_queue():
     idx = int(request.form.get('idx', -1))
-    items = QueueItem.query.order_by(QueueItem.position).all()
+    items = QueueItem.query.order_by(QueueItem.id).all()
     if 0 <= idx < len(items):
         db.session.delete(items[idx])
         db.session.commit()
-        _reindex()
         return jsonify({'success': True, 'queue': get_queue()})
     return jsonify({'success': False})
 
@@ -182,11 +169,10 @@ def remove_from_queue():
 @app.route('/skip_song', methods=['POST'])
 def skip_song():
     """Remove the first song (called by the TV screen to auto-advance)."""
-    first = QueueItem.query.order_by(QueueItem.position).first()
+    first = QueueItem.query.order_by(QueueItem.id).first()
     if first:
         db.session.delete(first)
         db.session.commit()
-        _reindex()
     return jsonify({'success': True, 'queue': get_queue()})
 
 
