@@ -621,7 +621,7 @@ if (window.innerWidth < 1100 && window.innerHeight < 600 && window.devicePixelRa
 <div class="score-screen" id="score-screen">
     <div class="confetti-layer" id="confetti-layer"></div>
     <div class="score-content">
-        <div class="score-eyebrow">AI VOCAL SCORE</div>
+        <div class="score-eyebrow">SCORE</div>
         <div class="score-song-title" id="score-song-title"></div>
         <div class="score-ring-wrap">
             <svg class="score-ring" viewBox="0 0 200 200">
@@ -652,7 +652,7 @@ if (window.innerWidth < 1100 && window.innerHeight < 600 && window.devicePixelRa
                 <circle class="countdown-ring-bg" cx="34" cy="34" r="28"/>
                 <circle class="countdown-ring-fg" id="countdown-ring-fg" cx="34" cy="34" r="28"/>
             </svg>
-            <div class="countdown-number" id="countdown-number">15</div>
+            <div class="countdown-number" id="countdown-number">10</div>
         </div>
     </div>
 </div>
@@ -756,11 +756,8 @@ function onPlayerStateChange(event) {
 // ══════════════════════════════════════
 function randomScore() {
     const r = Math.random();
-    if (r < 0.05) return 96 + Math.floor(Math.random() * 5);   // 96-100 rare perfect
-    if (r < 0.35) return 85 + Math.floor(Math.random() * 11);  // 85-95
-    if (r < 0.75) return 70 + Math.floor(Math.random() * 15);  // 70-84
-    if (r < 0.93) return 55 + Math.floor(Math.random() * 15);  // 55-69
-    return 38 + Math.floor(Math.random() * 17);                // 38-54
+    if (r < 0.15) return 96 + Math.floor(Math.random() * 5);   // 96-100 rare perfect
+    return 85 + Math.floor(Math.random() * 11);                // 85-95 (most common)
 }
 
 function scoreMeta(score) {
@@ -842,12 +839,12 @@ function beginScoreSequence() {
         if (score >= 85) spawnConfetti(70);
         else if (score >= 70) spawnConfetti(30);
     }, 1600);
-    // Countdown ring + number (15s auto-advance)
-    startCountdown(15);
+    // Countdown ring + number (10s auto-advance)
+    startCountdown(10);
 
     // Auto-advance after the score fully plays out
     if (scoreTimer) clearTimeout(scoreTimer);
-    scoreTimer = setTimeout(finishScoreScreen, 15000);
+    scoreTimer = setTimeout(finishScoreScreen, 10000);
 }
 
 let countdownTimer = null;
