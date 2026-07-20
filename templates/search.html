@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Karaoke Remote</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,12 +15,11 @@
             --purple: #9b5de5;
             --green: #4cffb0;
             --dark: #08080f;
-            --dark2: #0f0f1a;
-            --dark3: #1a1a2e;
+            --card: #12121e;
             --border: rgba(255,255,255,0.08);
             --text: #fff;
-            --text-dim: rgba(255,255,255,0.45);
-            --text-faint: rgba(255,255,255,0.2);
+            --text-dim: rgba(255,255,255,0.55);
+            --text-faint: rgba(255,255,255,0.28);
         }
 
         html, body {
@@ -30,481 +29,322 @@
             font-family: 'DM Sans', sans-serif;
             -webkit-font-smoothing: antialiased;
         }
+        button { font-family: inherit; }
 
-        /* ── Ambient ── */
         body::before {
             content: ''; position: fixed; inset: 0; z-index: 0;
             background:
-                radial-gradient(ellipse 70% 60% at 15% 50%, rgba(155,93,229,0.10) 0%, transparent 70%),
-                radial-gradient(ellipse 60% 50% at 85% 20%, rgba(0,212,255,0.08) 0%, transparent 70%);
+                radial-gradient(ellipse 70% 60% at 15% 0%, rgba(155,93,229,0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 85% 10%, rgba(0,212,255,0.08) 0%, transparent 70%);
             pointer-events: none;
         }
 
         /* ── Top Bar ── */
-        .topbar {
+        header {
             position: sticky; top: 0; z-index: 100;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 1rem; height: 56px;
+            padding: 0.9rem 1rem;
             background: rgba(8,8,15,0.92);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
         }
         .logo {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.5rem; letter-spacing: 4px;
-            background: linear-gradient(90deg, var(--purple), var(--blue));
+            font-size: 1.4rem; letter-spacing: 3px;
+            background: linear-gradient(90deg, var(--pink), var(--blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .topbar-right { display: flex; gap: 0.5rem; align-items: center; }
-
-        .pill-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            color: var(--text-dim);
-            font-size: 0.7rem; font-weight: 700;
-            letter-spacing: 1.5px; text-transform: uppercase;
-            padding: 0.4rem 0.9rem;
-            border-radius: 999px; cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'DM Sans', sans-serif;
+        .tv-link {
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+            color: var(--blue);
             text-decoration: none;
-        }
-        .pill-btn:hover { color: var(--text); border-color: var(--pink); }
-        .pill-btn.active {
-            background: rgba(255,45,120,0.15);
-            border-color: var(--pink); color: var(--pink);
+            border: 1px solid rgba(0,212,255,0.4);
+            border-radius: 999px;
+            padding: 0.45rem 0.9rem;
         }
 
         /* ── Tabs ── */
         .tab-bar {
-            position: sticky; top: 56px; z-index: 99;
+            position: sticky; top: 57px; z-index: 99;
             display: flex;
             background: rgba(8,8,15,0.88);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
         }
         .tab {
-            flex: 1; padding: 0.85rem;
+            flex: 1; padding: 0.85rem 0.3rem;
             background: none; border: none;
+            border-bottom: 3px solid transparent;
             color: var(--text-faint);
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.9rem; letter-spacing: 3px;
-            cursor: pointer; position: relative;
-            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-            transition: color 0.2s;
+            font-size: 0.85rem; font-weight: 700;
+            cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
         }
-        .tab:hover { color: var(--text-dim); }
-        .tab.active { color: var(--text); }
-        .tab.active::after {
-            content: ''; position: absolute;
-            bottom: -1px; left: 20%; right: 20%;
-            height: 2px; background: var(--pink);
-            border-radius: 2px 2px 0 0;
-            box-shadow: 0 0 10px var(--pink);
-        }
-
-        .badge {
+        .tab .icon { font-size: 1.25rem; }
+        .tab.active { color: var(--pink); border-bottom-color: var(--pink); }
+        .tab .count {
             background: var(--pink); color: #fff;
-            font-size: 0.5rem; font-weight: 700;
-            min-width: 16px; height: 16px;
-            border-radius: 999px;
+            font-size: 0.6rem; font-weight: 700;
+            min-width: 17px; height: 17px; border-radius: 999px;
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 0 3px;
-            font-family: 'DM Sans', sans-serif; letter-spacing: 0;
+            padding: 0 4px;
         }
 
-        /* ── Tab Panels ── */
-        .panel { display: none; position: relative; z-index: 1; }
+        .panel { display: none; position: relative; z-index: 1; padding: 1rem; padding-bottom: 2rem; }
         .panel.active { display: block; }
 
-        /* ── SONGBOOK Panel ── */
-        .sl-controls {
-            position: sticky; top: 97px; z-index: 50;
-            display: flex; align-items: center; gap: 0.6rem;
-            padding: 0.8rem 1rem;
-            background: rgba(8,8,15,0.92);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
+        .hint {
+            font-size: 0.85rem; color: var(--text-dim);
+            margin-bottom: 1rem; line-height: 1.4;
         }
-        .sl-search {
-            flex: 1; min-width: 200px;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            color: var(--text);
-            font-size: 0.85rem; padding: 0.55rem 0.85rem;
-            outline: none; font-family: 'DM Sans', sans-serif;
-        }
-        .sl-search::placeholder { color: var(--text-faint); }
-        .sl-search:focus { border-color: var(--purple); }
 
+        /* ── Search box ── */
+        .search-box { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .search-box input {
+            flex: 1;
+            background: rgba(255,255,255,0.06);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem; padding: 0.8rem 1rem;
+            outline: none;
+        }
+        .search-box input::placeholder { color: var(--text-faint); }
+        .search-box input:focus { border-color: var(--pink); }
+        .search-box button {
+            background: var(--pink); border: none;
+            border-radius: 12px; color: #fff;
+            padding: 0 1.1rem; cursor: pointer;
+            font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .search-box button:disabled { opacity: 0.4; cursor: default; }
+
+        /* ── Genre chips ── */
         .genre-wrap {
-            display: flex; gap: 0.35rem;
-            overflow-x: auto; scrollbar-width: none;
-            flex-shrink: 0;
+            display: flex; gap: 0.4rem; overflow-x: auto;
+            margin-bottom: 1rem; padding-bottom: 0.2rem;
+            scrollbar-width: none;
         }
         .genre-wrap::-webkit-scrollbar { display: none; }
-
         .genre-btn {
             background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
+            border: 2px solid var(--border);
             color: var(--text-dim);
-            font-size: 0.65rem; font-weight: 700;
-            padding: 0.35rem 0.7rem;
+            font-size: 0.8rem; font-weight: 700;
+            padding: 0.45rem 0.9rem;
             border-radius: 999px; cursor: pointer;
-            transition: all 0.2s; white-space: nowrap;
-            font-family: 'DM Sans', sans-serif;
+            white-space: nowrap;
         }
-        .genre-btn:hover { color: var(--text); border-color: var(--purple); }
         .genre-btn.active {
-            background: rgba(155,93,229,0.2);
-            border-color: var(--purple); color: var(--purple);
+            background: rgba(255,45,120,0.15);
+            border-color: var(--pink); color: var(--pink);
         }
 
-        .sl-count {
-            font-size: 0.7rem; color: var(--text-faint);
+        /* ── Song list ── */
+        .song-card {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 0.8rem;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .song-card .info { min-width: 0; }
+        .song-title { font-weight: 700; font-size: 0.92rem; }
+        .song-artist { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+        .song-genre {
+            display: inline-block; margin-top: 4px;
+            background: rgba(155,93,229,0.14); color: var(--purple);
+            font-size: 0.62rem; font-weight: 700;
+            padding: 0.15rem 0.5rem; border-radius: 999px;
+        }
+        .btn-search {
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.06); border: 2px solid var(--border);
+            border-radius: 10px; color: var(--text);
+            font-size: 0.78rem; font-weight: 700;
+            padding: 0.55rem 0.9rem; cursor: pointer;
             white-space: nowrap;
         }
 
-        .song-table {
-            width: 100%; border-collapse: collapse;
-        }
-        .song-table th {
-            position: sticky; top: 145px; z-index: 40;
-            background: var(--dark2);
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.75rem; letter-spacing: 2px;
-            color: var(--text-dim);
-            padding: 0.55rem 0.8rem;
-            text-align: left;
+        /* ── Search results ── */
+        .result-card {
+            display: flex; align-items: center; gap: 0.7rem;
+            padding: 0.6rem 0;
             border-bottom: 1px solid var(--border);
         }
-        .song-table td {
-            padding: 0.6rem 0.8rem;
-            font-size: 0.8rem;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+        .result-thumb {
+            width: 84px; height: 60px; object-fit: cover;
+            border-radius: 8px; background: var(--card); flex-shrink: 0;
         }
-        .song-table tr:hover td { background: rgba(255,255,255,0.03); }
-        .song-table tr:active td { background: rgba(255,45,120,0.08); }
+        .result-info { flex: 1; min-width: 0; }
+        .result-title {
+            font-size: 0.83rem; font-weight: 700; line-height: 1.3;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .result-channel { font-size: 0.7rem; color: var(--text-dim); margin-top: 2px; }
+        .btn-add {
+            flex-shrink: 0;
+            background: rgba(76,255,176,0.12); border: 1px solid rgba(76,255,176,0.3);
+            border-radius: 10px; color: var(--green);
+            font-size: 0.78rem; font-weight: 700;
+            padding: 0.55rem 0.8rem; cursor: pointer;
+        }
+        .btn-add:hover { background: rgba(76,255,176,0.22); }
+        .btn-add.added { background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-faint); cursor: default; }
+        .btn-add:disabled { opacity: 0.6; }
 
-        .s-num {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.05rem; color: var(--text-faint);
-            width: 40px; text-align: center;
+        /* ── Add by link ── */
+        .link-section {
+            margin-top: 1.5rem; padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
         }
-        .s-title { font-weight: 700; }
-        .s-artist { color: var(--text-dim); }
-        .s-genre {
-            background: rgba(155,93,229,0.12);
-            border: 1px solid rgba(155,93,229,0.2);
-            color: var(--purple);
-            font-size: 0.55rem; font-weight: 700;
-            padding: 0.15rem 0.45rem;
-            border-radius: 999px; white-space: nowrap;
+        .link-section h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--text-dim); }
+        .link-row { display: flex; gap: 0.5rem; }
+        .link-row input {
+            flex: 1; background: rgba(255,255,255,0.05);
+            border: 2px solid var(--border); border-radius: 12px;
+            color: var(--text); font-size: 0.9rem;
+            padding: 0.7rem 0.9rem; outline: none;
         }
-        .s-play {
-            background: rgba(255,45,120,0.12);
-            border: 1px solid rgba(255,45,120,0.25);
-            border-radius: 8px; color: var(--pink);
-            font-size: 0.65rem; font-weight: 700;
-            padding: 0.35rem 0.65rem; cursor: pointer;
-            transition: all 0.15s; white-space: nowrap;
-            font-family: 'DM Sans', sans-serif;
+        .link-row input::placeholder { color: var(--text-faint); }
+        .link-row input:focus { border-color: var(--blue); }
+        .link-row button {
+            background: rgba(0,212,255,0.14); border: 1px solid rgba(0,212,255,0.35);
+            border-radius: 12px; color: var(--blue); font-weight: 700; font-size: 0.82rem;
+            padding: 0 1.1rem; cursor: pointer;
         }
-        .s-play:hover { background: rgba(255,45,120,0.25); }
+        .link-row button:hover { background: rgba(0,212,255,0.24); }
 
-        /* ── SEARCH Panel ── */
-        .search-section { padding: 1rem; }
-        .search-section h3 {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1rem; letter-spacing: 2px;
-            color: var(--text-dim); margin-bottom: 0.6rem;
-        }
-
-        .yt-row { display: flex; gap: 0.5rem; margin-bottom: 0.7rem; }
-
-        .yt-input {
-            flex: 1;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            color: var(--text);
-            font-size: 0.85rem; padding: 0.6rem 0.85rem;
-            outline: none; font-family: 'DM Sans', sans-serif;
-        }
-        .yt-input::placeholder { color: var(--text-faint); }
-        .yt-input:focus { border-color: var(--pink); }
-
-        .yt-go {
-            background: var(--pink); border: none;
-            border-radius: 10px; color: #fff;
-            padding: 0.6rem 0.9rem; cursor: pointer;
-            display: flex; align-items: center;
-            transition: opacity 0.2s; flex-shrink: 0;
-        }
-        .yt-go:hover { opacity: 0.85; }
-        .yt-go:disabled { opacity: 0.35; cursor: default; }
-
-        .divider {
-            display: flex; align-items: center; gap: 0.5rem;
-            font-size: 0.6rem; color: var(--text-faint);
-            letter-spacing: 1px; text-transform: uppercase;
-            margin: 0.8rem 0;
-        }
-        .divider::before, .divider::after {
-            content: ''; flex: 1; height: 1px;
-            background: rgba(255,255,255,0.07);
-        }
-
-        .link-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
-
-        .link-input {
-            flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 10px; color: var(--text);
-            font-size: 0.8rem; padding: 0.55rem 0.8rem;
-            outline: none; font-family: 'DM Sans', sans-serif;
-        }
-        .link-input::placeholder { color: var(--text-faint); }
-        .link-input:focus { border-color: rgba(0,212,255,0.5); }
-
-        .link-go {
-            background: rgba(0,212,255,0.12);
-            border: 1px solid rgba(0,212,255,0.25);
-            border-radius: 10px; color: var(--blue);
-            font-size: 0.75rem; font-weight: 700;
-            padding: 0.55rem 0.75rem; cursor: pointer;
-            white-space: nowrap; transition: all 0.2s;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .link-go:hover { background: rgba(0,212,255,0.22); }
-
-        .msg {
-            font-size: 0.7rem; color: var(--text-faint);
-            min-height: 1.2em; margin-bottom: 0.5rem;
-        }
-        .msg.ok { color: var(--green); }
-        .msg.err { color: var(--pink); }
-
-        .results { display: flex; flex-direction: column; gap: 0.4rem; }
-
-        .result-item {
-            display: flex; align-items: center; gap: 0.6rem;
-            padding: 0.5rem 0.3rem;
-            border-radius: 10px;
-            transition: background 0.15s;
-        }
-        .result-item:hover { background: rgba(255,255,255,0.04); }
-
-        .r-thumb {
-            width: 80px; height: 56px;
-            object-fit: cover; border-radius: 6px;
-            background: #222; flex-shrink: 0;
-        }
-        .r-info { flex: 1; min-width: 0; }
-        .r-title {
-            font-size: 0.75rem; font-weight: 700;
-            display: -webkit-box; -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35;
-        }
-        .r-channel {
-            font-size: 0.62rem; color: var(--text-dim);
-            margin-top: 2px; white-space: nowrap;
-            overflow: hidden; text-overflow: ellipsis;
-        }
-
-        .r-add {
-            background: rgba(255,45,120,0.12);
-            border: 1px solid rgba(255,45,120,0.25);
-            border-radius: 8px; color: var(--pink);
-            font-size: 0.68rem; font-weight: 700;
-            padding: 0.4rem 0.65rem; cursor: pointer;
-            white-space: nowrap; transition: all 0.15s;
-            flex-shrink: 0; font-family: 'DM Sans', sans-serif;
-        }
-        .r-add:hover { background: rgba(255,45,120,0.25); }
-        .r-add.added {
-            background: rgba(76,255,176,0.1);
-            border-color: rgba(76,255,176,0.3);
-            color: var(--green); cursor: default;
-        }
+        .msg { font-size: 0.85rem; margin-top: 0.6rem; min-height: 1.2em; }
+        .msg.ok { color: var(--green); font-weight: 700; }
+        .msg.err { color: var(--pink); font-weight: 700; }
 
         .empty-msg {
             text-align: center; color: var(--text-faint);
-            font-size: 0.8rem; padding: 2rem 1rem;
+            font-size: 0.88rem; padding: 3rem 1rem; line-height: 1.5;
         }
+        .empty-msg .big-emoji { font-size: 2.5rem; display: block; margin-bottom: 0.6rem; }
 
-        /* ── QUEUE Panel ── */
-        .queue-panel { padding: 0; }
-
-        .q-item {
+        /* ── Queue ── */
+        .queue-item {
             display: flex; align-items: center; gap: 0.7rem;
-            padding: 0.7rem 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.035);
-            transition: background 0.15s;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border);
         }
-        .q-item:hover { background: rgba(255,255,255,0.04); }
-        .q-item.current {
-            background: rgba(255,45,120,0.07);
-            border-left: 3px solid var(--pink);
-        }
+        .queue-item.current { background: rgba(255,45,120,0.06); margin: 0 -1rem; padding: 0.8rem 1rem; border-left: 3px solid var(--pink); }
         .q-num {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.3rem; color: var(--text-faint);
-            min-width: 24px; text-align: center;
+            min-width: 26px; text-align: center;
         }
-        .q-item.current .q-num { color: var(--pink); }
-        .q-thumb {
-            width: 56px; height: 40px;
-            object-fit: cover; border-radius: 4px;
-            background: #222; flex-shrink: 0;
-        }
+        .queue-item.current .q-num { color: var(--pink); }
+        .q-thumb { width: 60px; height: 44px; object-fit: cover; border-radius: 6px; background: var(--card); flex-shrink: 0; }
         .q-info { flex: 1; min-width: 0; }
-        .q-title {
-            font-size: 0.75rem; font-weight: 700;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .q-item.current .q-title { color: var(--pink); }
-        .q-channel { font-size: 0.62rem; color: var(--text-dim); margin-top: 1px; }
+        .q-title { font-size: 0.83rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .queue-item.current .q-title { color: var(--pink); }
         .q-now {
-            font-size: 0.55rem; font-weight: 700;
-            color: var(--pink); letter-spacing: 1px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.62rem; letter-spacing: 1.5px; color: var(--pink);
             text-transform: uppercase; margin-top: 2px;
         }
-        .rm-btn {
-            background: none; border: none;
-            color: var(--text-faint); cursor: pointer;
-            font-size: 0.8rem; padding: 4px 6px;
-            border-radius: 6px; transition: all 0.2s; flex-shrink: 0;
+        .q-remove {
+            background: none; border: none; color: var(--text-faint);
+            font-size: 1.1rem; cursor: pointer; padding: 0.3rem 0.5rem;
         }
-        .rm-btn:hover { color: var(--pink); background: rgba(255,45,120,0.1); }
+        .q-remove:hover { color: var(--pink); }
 
         .queue-actions {
             position: sticky; bottom: 0;
-            display: flex; gap: 0.5rem;
-            padding: 0.8rem 1rem;
+            display: flex; gap: 0.6rem;
+            padding: 0.9rem 1rem;
             background: rgba(8,8,15,0.95);
             backdrop-filter: blur(16px);
             border-top: 1px solid var(--border);
+            margin: 1rem -1rem -2rem;
         }
-        .skip-btn {
-            flex: 1; padding: 0.75rem;
+        .btn-next {
+            flex: 1; padding: 0.9rem;
             background: linear-gradient(135deg, var(--pink), #a000c8);
-            border: none; border-radius: 10px;
+            border: none; border-radius: 12px;
             color: #fff;
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1rem; letter-spacing: 3px;
-            cursor: pointer; transition: all 0.2s;
+            font-size: 1rem; letter-spacing: 2px;
+            cursor: pointer;
             box-shadow: 0 4px 20px rgba(255,45,120,0.3);
         }
-        .skip-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(255,45,120,0.5); }
-        .skip-btn:disabled {
-            background: rgba(255,255,255,0.07); color: var(--text-faint);
-            box-shadow: none; cursor: default; transform: none;
-        }
-        .clear-btn {
-            padding: 0.75rem 1.2rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            border-radius: 10px; color: var(--text-dim);
+        .btn-next:disabled { background: rgba(255,255,255,0.06); color: var(--text-faint); box-shadow: none; }
+        .btn-clear {
+            padding: 0.9rem 1.2rem;
+            background: rgba(255,255,255,0.05); border: 2px solid var(--border);
+            border-radius: 12px; color: var(--text-dim);
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.85rem; letter-spacing: 2px;
-            cursor: pointer; transition: all 0.2s;
+            font-size: 0.85rem; letter-spacing: 1.5px; cursor: pointer;
         }
-        .clear-btn:hover { border-color: var(--pink); color: var(--pink); }
-        .clear-btn:disabled { opacity: 0.3; cursor: default; }
-
-        @media (max-width: 500px) {
-            .song-table th:nth-child(1), .song-table td:nth-child(1) { display: none; }
-            .song-table th:nth-child(4), .song-table td:nth-child(4) { display: none; }
-            .sl-controls { top: 97px; }
-            .song-table th { top: 152px; }
-        }
+        .btn-clear:disabled { opacity: 0.4; }
     </style>
 </head>
 <body>
 
-<!-- ── Top Bar ── -->
-<header class="topbar">
+<header>
     <div class="logo">🎤 REMOTE</div>
-    <div class="topbar-right">
-        <a class="pill-btn" href="/" target="_blank">Open TV Screen</a>
-    </div>
+    <a class="tv-link" href="/" target="_blank">Open TV Screen</a>
 </header>
 
-<!-- ── Tabs ── -->
 <div class="tab-bar">
-    <button class="tab active" data-tab="songbook" onclick="switchTab('songbook')">SONG BOOK</button>
-    <button class="tab" data-tab="search" onclick="switchTab('search')">YOUTUBE SEARCH</button>
+    <button class="tab active" data-tab="search" onclick="switchTab('search')">
+        <span class="icon">🔍</span> Search
+    </button>
+    <button class="tab" data-tab="songbook" onclick="switchTab('songbook')">
+        <span class="icon">📖</span> Song Book
+    </button>
     <button class="tab" data-tab="queue" onclick="switchTab('queue')">
-        QUEUE <span class="badge" id="q-badge">0</span>
+        <span class="icon">🎵</span> Queue <span class="count" id="q-badge">0</span>
     </button>
 </div>
 
-<!-- ═══════ SONGBOOK ═══════ -->
-<div class="panel active" id="panel-songbook">
-    <div class="sl-controls">
-        <input class="sl-search" id="sl-search" placeholder="Search title or artist..."
-               oninput="filterSongs()">
-        <div class="genre-wrap" id="genre-wrap"></div>
-        <span class="sl-count" id="sl-count"></span>
+<!-- ═══════ SEARCH (default tab) ═══════ -->
+<div class="panel active" id="panel-search">
+    <p class="hint">Type a song name and we'll find karaoke versions on YouTube.</p>
+    <div class="search-box">
+        <input id="yt-input" placeholder="e.g. Perfect Ed Sheeran" onkeydown="if(event.key==='Enter')ytSearch()">
+        <button id="yt-go" onclick="ytSearch()">🔍</button>
     </div>
-    <table class="song-table">
-        <thead>
-            <tr>
-                <th style="width:40px">#</th>
-                <th>TITLE</th>
-                <th>ARTIST</th>
-                <th style="width:70px">GENRE</th>
-                <th style="width:70px"></th>
-            </tr>
-        </thead>
-        <tbody id="sl-body"></tbody>
-    </table>
+
+    <div class="msg" id="msg"></div>
+    <div class="results" id="results">
+        <div class="empty-msg">
+            <span class="big-emoji">🎶</span>
+            Search above to find a song, or paste a YouTube link below.
+        </div>
+    </div>
+
+    <div class="link-section">
+        <h3>Have a YouTube link instead?</h3>
+        <div class="link-row">
+            <input id="link-input" placeholder="Paste link here" onkeydown="if(event.key==='Enter')addLink()">
+            <button onclick="addLink()">Add</button>
+        </div>
+    </div>
 </div>
 
-<!-- ═══════ YOUTUBE SEARCH ═══════ -->
-<div class="panel" id="panel-search">
-    <div class="search-section">
-        <h3>SEARCH YOUTUBE</h3>
-        <div class="yt-row">
-            <input class="yt-input" id="yt-input" placeholder="Search for karaoke..."
-                   onkeydown="if(event.key==='Enter')ytSearch()">
-            <button class="yt-go" id="yt-go" onclick="ytSearch()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-            </button>
-        </div>
-
-        <div class="divider">or paste a link</div>
-
-        <div class="link-row">
-            <input class="link-input" id="link-input" placeholder="https://youtube.com/watch?v=..."
-                   onkeydown="if(event.key==='Enter')addLink()">
-            <button class="link-go" onclick="addLink()">+ Add</button>
-        </div>
-
-        <div class="msg" id="msg"></div>
-
-        <div class="results" id="results">
-            <div class="empty-msg">Search for a karaoke song above</div>
-        </div>
+<!-- ═══════ SONG BOOK ═══════ -->
+<div class="panel" id="panel-songbook">
+    <p class="hint">Browse our song list. Tap "Search" on any song to find it on YouTube.</p>
+    <div class="search-box">
+        <input id="sl-search" placeholder="Search by title or artist" oninput="filterSongs()">
     </div>
+    <div class="genre-wrap" id="genre-wrap"></div>
+    <div id="sl-list"></div>
 </div>
 
 <!-- ═══════ QUEUE ═══════ -->
 <div class="panel" id="panel-queue">
-    <div class="queue-panel">
-        <div id="queue-list"></div>
-        <div class="queue-actions">
-            <button class="skip-btn" id="skip-btn" onclick="skipSong()" disabled>▶ NEXT SONG</button>
-            <button class="clear-btn" id="clear-btn" onclick="clearQueue()" disabled>CLEAR</button>
-        </div>
+    <p class="hint">This is the shared list — everyone's phone updates it live.</p>
+    <div id="queue-list"></div>
+    <div class="queue-actions">
+        <button class="btn-next" id="skip-btn" onclick="skipSong()" disabled>⏭ NEXT SONG</button>
+        <button class="btn-clear" id="clear-btn" onclick="clearQueue()" disabled>CLEAR</button>
     </div>
 </div>
 
@@ -529,7 +369,7 @@ async function loadSongs() {
     const data = await fetch('/songlist').then(r => r.json());
     allSongs = data.songs;
     renderGenres();
-    renderSongTable(allSongs);
+    renderSongList(allSongs);
 }
 
 function renderGenres() {
@@ -548,24 +388,24 @@ function filterSongs() {
     let list = allSongs;
     if (activeGenre) list = list.filter(s => s.genre === activeGenre);
     if (q) list = list.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q));
-    renderSongTable(list);
+    renderSongList(list);
 }
 
-function renderSongTable(songs) {
-    document.getElementById('sl-count').textContent = songs.length + ' songs';
-    const body = document.getElementById('sl-body');
+function renderSongList(songs) {
+    const body = document.getElementById('sl-list');
     if (!songs.length) {
-        body.innerHTML = '<tr><td colspan="5" class="empty-msg">No songs found</td></tr>';
+        body.innerHTML = '<div class="empty-msg">No songs found — try a different search.</div>';
         return;
     }
     body.innerHTML = songs.map(s => `
-        <tr>
-            <td class="s-num">${s.id}</td>
-            <td class="s-title">${esc(s.title)}</td>
-            <td class="s-artist">${esc(s.artist)}</td>
-            <td><span class="s-genre">${esc(s.genre)}</span></td>
-            <td><button class="s-play" onclick="songSearch('${esc(s.title).replace(/'/g,"\\'")} ${esc(s.artist).replace(/'/g,"\\'")} karaoke')">Search</button></td>
-        </tr>`).join('');
+        <div class="song-card">
+            <div class="info">
+                <div class="song-title">${esc(s.title)}</div>
+                <div class="song-artist">${esc(s.artist)}</div>
+                <span class="song-genre">${esc(s.genre)}</span>
+            </div>
+            <button class="btn-search" onclick="songSearch('${esc(s.title).replace(/'/g,"\\'")} ${esc(s.artist).replace(/'/g,"\\'")} karaoke')">🔍 Search</button>
+        </div>`).join('');
 }
 
 function songSearch(query) {
@@ -589,30 +429,30 @@ async function ytSearch() {
         const data = await fetch('/youtube_search?q=' + encodeURIComponent(q)).then(r => r.json());
         res.innerHTML = '';
         if (!data.results.length) {
-            res.innerHTML = '<div class="empty-msg">No results found.</div>';
+            res.innerHTML = '<div class="empty-msg">No results found. Try a different search.</div>';
             return;
         }
         data.results.forEach(v => {
             const div = document.createElement('div');
-            div.className = 'result-item';
+            div.className = 'result-card';
             div.innerHTML = `
-                <img class="r-thumb" src="${esc(v.thumbnail)}" alt="">
-                <div class="r-info">
-                    <div class="r-title">${esc(v.title)}</div>
-                    <div class="r-channel">${esc(v.channel)}</div>
+                <img class="result-thumb" src="${esc(v.thumbnail)}" alt="">
+                <div class="result-info">
+                    <div class="result-title">${esc(v.title)}</div>
+                    <div class="result-channel">${esc(v.channel)}</div>
                 </div>
-                <button class="r-add" data-id="${esc(v.id)}" data-title="${esc(v.title)}" data-channel="${esc(v.channel)}">+ Add</button>`;
-            div.querySelector('.r-add').addEventListener('click', function() {
+                <button class="btn-add">+ Add</button>`;
+            div.querySelector('.btn-add').addEventListener('click', function() {
                 const b = this;
                 b.disabled = true; b.textContent = '...';
-                addToQueue(b.dataset.id, b.dataset.title, b.dataset.channel).then(() => {
-                    b.classList.add('added'); b.textContent = '✓ Queued';
+                addToQueue(v.id, v.title, v.channel).then(() => {
+                    b.classList.add('added'); b.textContent = '✓ Added';
                 });
             });
             res.appendChild(div);
         });
     } catch {
-        res.innerHTML = '<div class="empty-msg">Search failed. Try again.</div>';
+        res.innerHTML = '<div class="empty-msg">Search failed. Please try again.</div>';
     } finally {
         btn.disabled = false;
     }
@@ -634,7 +474,7 @@ async function addLink() {
         setTimeout(() => { msg.textContent = ''; }, 3000);
     } else {
         msg.className = 'msg err';
-        msg.textContent = data.error ? '✗ ' + data.error : '✗ Invalid YouTube link.';
+        msg.textContent = data.error ? '✗ ' + data.error : '✗ That link didn\'t work.';
     }
 }
 
@@ -679,20 +519,19 @@ function renderQueue() {
     clearBtn.disabled = queue.length === 0;
 
     if (!queue.length) {
-        list.innerHTML = '<div class="empty-msg" style="padding:3rem 1rem;">Queue is empty — add songs from Song Book or YouTube Search</div>';
+        list.innerHTML = '<div class="empty-msg"><span class="big-emoji">🎤</span>Queue is empty.<br>Go to Search or Song Book to add a song.</div>';
         return;
     }
 
     list.innerHTML = queue.map((item, i) => `
-        <div class="q-item${i === 0 ? ' current' : ''}">
+        <div class="queue-item${i === 0 ? ' current' : ''}">
             <span class="q-num">${i + 1}</span>
             <img class="q-thumb" src="https://img.youtube.com/vi/${esc(item.video_id)}/default.jpg" alt="">
             <div class="q-info">
                 <div class="q-title">${esc(item.title)}</div>
-                <div class="q-channel">${esc(item.channel)}</div>
                 ${i === 0 ? '<div class="q-now">Now Playing</div>' : ''}
             </div>
-            <button class="rm-btn" onclick="removeFromQueue(${i})">✕</button>
+            <button class="q-remove" onclick="removeFromQueue(${i})">✕</button>
         </div>`).join('');
 }
 
