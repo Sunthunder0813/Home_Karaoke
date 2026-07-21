@@ -70,6 +70,160 @@
             cursor: default;
         }
 
+        /* ── Player Controls ── */
+        .player-controls {
+            position: absolute; left: 0; right: 0; bottom: 0; z-index: 50;
+            display: flex; justify-content: center;
+            padding: 0 1.5rem 1.4rem;
+            background: none;
+            opacity: 0; pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .player-controls.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+        .pc-panel {
+            position: relative;
+            width: 100%; max-width: 1200px;
+            display: flex; flex-direction: column; gap: 0.7rem;
+            background: rgba(60,60,68,0.45);
+            backdrop-filter: blur(30px) saturate(120%);
+            -webkit-backdrop-filter: blur(30px) saturate(120%);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 26px;
+            padding: 0.9rem 1.4rem;
+            box-shadow:
+                0 10px 40px rgba(0,0,0,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                inset 0 0 0 1px rgba(255,255,255,0.03);
+            overflow: hidden;
+        }
+        .pc-panel::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+            pointer-events: none;
+        }
+        .pc-panel > * { position: relative; z-index: 1; }
+
+        @media (min-width: 1600px) {
+            .pc-panel { max-width: 1400px; padding: 1.1rem 1.6rem; }
+        }
+
+        @media (max-width: 900px) {
+            .player-controls { padding: 0 1rem 2.2rem; }
+            .pc-panel { max-width: 100%; }
+        }
+
+        .pc-seek-row { display: flex; align-items: center; gap: 0.7rem; }
+        .pc-time {
+            font-size: 0.8rem; font-weight: 700;
+            color: rgba(255,255,255,0.8);
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0; min-width: 40px;
+        }
+        .pc-time.pc-time-end { text-align: right; }
+        .pc-seek-track {
+            position: relative; flex: 1; height: 26px;
+            display: flex; align-items: center; cursor: pointer;
+            touch-action: none;
+        }
+        .pc-seek-bg {
+            position: absolute; left: 0; right: 0; height: 6px;
+            border-radius: 999px; background: rgba(255,255,255,0.18);
+        }
+        .pc-seek-fill {
+            position: absolute; left: 0; height: 6px; width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--pink), var(--blue));
+        }
+        .pc-seek-handle {
+            position: absolute; left: 0%; top: 50%;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: #fff; transform: translate(-50%, -50%);
+            box-shadow: 0 0 0 4px rgba(255,45,120,0.3), 0 2px 6px rgba(0,0,0,0.5);
+        }
+
+        .pc-btn-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+        .pc-left, .pc-right { display: flex; align-items: center; gap: 0.6rem; }
+
+        .pc-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 50%;
+            color: #fff; font-size: 1.15rem;
+            width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s;
+        }
+        .pc-btn svg { display: block; }
+        .pc-btn:hover { background: rgba(255,255,255,0.2); border-color: var(--blue); }
+        .pc-btn:active { transform: scale(0.9); }
+        .pc-btn#pc-playpause {
+            width: 56px; height: 56px; font-size: 1.4rem;
+            background: var(--pink); border-color: var(--pink);
+        }
+        .pc-btn#pc-playpause:hover { background: #ff5590; }
+
+        .pc-speed-group {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 999px; padding: 0.25rem;
+        }
+        .pc-speed-btn {
+            background: rgba(255,255,255,0.08); border: none;
+            color: #fff; font-size: 1.1rem; font-weight: 700;
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .pc-speed-btn:hover { background: rgba(255,45,120,0.4); }
+        .pc-speed-btn:active { transform: scale(0.88); }
+        .pc-speed-btn:disabled {
+            opacity: 0.3; cursor: not-allowed;
+            background: rgba(255,255,255,0.08); transform: none;
+        }
+        .pc-speed-display {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem; letter-spacing: 1px;
+            color: var(--pink);
+            min-width: 44px; text-align: center;
+        }
+
+        @media (max-width: 900px) {
+            .pc-panel { padding: 0.8rem 1rem; border-radius: 18px; gap: 0.6rem; }
+            .pc-btn { width: 52px; height: 52px; font-size: 1.25rem; }
+            .pc-btn#pc-playpause { width: 60px; height: 60px; font-size: 1.5rem; }
+            .pc-speed-btn { width: 40px; height: 40px; font-size: 1.15rem; }
+            .pc-speed-display { font-size: 1.05rem; }
+        }
+
+        @media (max-width: 640px) {
+            .player-controls { padding: 0 0.6rem 2.8rem; }
+            .pc-panel { padding: 0.7rem 0.8rem; border-radius: 16px; gap: 0.5rem; }
+            .pc-btn { width: 46px; height: 46px; font-size: 1.1rem; }
+            .pc-btn#pc-playpause { width: 54px; height: 54px; font-size: 1.35rem; }
+            .pc-time { font-size: 0.7rem; min-width: 32px; }
+            .pc-seek-track { height: 24px; }
+            .pc-seek-handle { width: 16px; height: 16px; }
+            .pc-speed-btn { width: 36px; height: 36px; font-size: 1rem; }
+            .pc-speed-display { font-size: 0.9rem; min-width: 38px; }
+            .pc-btn-row { gap: 0.5rem; }
+            .pc-left, .pc-right { gap: 0.5rem; }
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            .player-controls { padding: 0 0.8rem 1.6rem; }
+            .pc-panel { padding: 0.5rem 0.8rem; gap: 0.4rem; border-radius: 14px; }
+            .pc-btn { width: 40px; height: 40px; font-size: 1rem; }
+            .pc-btn#pc-playpause { width: 46px; height: 46px; font-size: 1.15rem; }
+            .pc-seek-track { height: 20px; }
+            .pc-speed-btn { width: 32px; height: 32px; font-size: 0.9rem; }
+        }
+
         /* Start screen */
         .start-screen {
             position: fixed; inset: 0; z-index: 999;
@@ -671,6 +825,9 @@ let ytReady = false;
 let showingScore = false;
 let scoreTimer = null;
 let started = false;
+let progressTimer = null;
+let controlsHideTimer = null;
+let currentPlaybackRate = 1;
 
 // ── Load YouTube IFrame API ──
 const tag = document.createElement('script');
@@ -742,13 +899,169 @@ document.getElementById('start-screen').addEventListener('keydown', function(e) 
 function onPlayerReady(event) {
     event.target.unMute();
     event.target.setVolume(100);
+    event.target.setPlaybackRate(1);
+    currentPlaybackRate = 1;
     event.target.playVideo();
+    setupPlayerControls();
 }
 
 function onPlayerStateChange(event) {
     if (event.data === 0 && !showingScore) {
         beginScoreSequence();
     }
+}
+
+// ══════════════════════════════════════
+// PLAYER CONTROLS
+// ══════════════════════════════════════
+function setupPlayerControls() {
+    const controls = document.getElementById('player-controls');
+    const blocker = document.querySelector('.video-blocker');
+    if (!controls) return;
+
+    if (blocker) blocker.onclick = toggleControlsVisibility;
+    controls.onmousemove = showControls;
+    controls.ontouchstart = showControls;
+
+    const playPauseBtn = document.getElementById('pc-playpause');
+    if (playPauseBtn) playPauseBtn.onclick = togglePlayPause;
+
+    const rewindBtn = document.getElementById('pc-rewind');
+    if (rewindBtn) rewindBtn.onclick = () => skipBy(-10);
+
+    const forwardBtn = document.getElementById('pc-forward');
+    if (forwardBtn) forwardBtn.onclick = () => skipBy(10);
+
+    updateSpeedDisplay();
+    const speedDownBtn = document.getElementById('pc-speed-down');
+    if (speedDownBtn) speedDownBtn.onclick = () => adjustSpeed(-0.5);
+    const speedUpBtn = document.getElementById('pc-speed-up');
+    if (speedUpBtn) speedUpBtn.onclick = () => adjustSpeed(0.5);
+
+    const seekTrack = document.getElementById('pc-seek-track');
+    if (seekTrack) seekTrack.onclick = onSeekClick;
+
+    showControls();
+    if (progressTimer) clearInterval(progressTimer);
+    progressTimer = setInterval(updateProgressUI, 500);
+}
+
+function showControls() {
+    const controls = document.getElementById('player-controls');
+    if (!controls) return;
+    controls.classList.add('visible');
+    if (controlsHideTimer) clearTimeout(controlsHideTimer);
+    controlsHideTimer = setTimeout(() => controls.classList.remove('visible'), 4000);
+}
+
+function hideControls() {
+    const controls = document.getElementById('player-controls');
+    if (!controls) return;
+    if (controlsHideTimer) { clearTimeout(controlsHideTimer); controlsHideTimer = null; }
+    controls.classList.remove('visible');
+}
+
+function toggleControlsVisibility() {
+    const controls = document.getElementById('player-controls');
+    if (!controls) return;
+    if (controls.classList.contains('visible')) {
+        hideControls();
+    } else {
+        showControls();
+    }
+}
+
+function setPlayPauseIcon(isPlaying) {
+    const playIcon = document.getElementById('pc-play-icon');
+    const pauseIcon = document.getElementById('pc-pause-icon');
+    if (playIcon) playIcon.style.display = isPlaying ? 'none' : 'block';
+    if (pauseIcon) pauseIcon.style.display = isPlaying ? 'block' : 'none';
+}
+
+function togglePlayPause() {
+    if (!player) return;
+    const state = player.getPlayerState();
+    if (state === 1) {
+        player.pauseVideo();
+        setPlayPauseIcon(false);
+    } else {
+        player.playVideo();
+        setPlayPauseIcon(true);
+    }
+    showControls();
+}
+
+function skipBy(seconds) {
+    if (!player) return;
+    const t = player.getCurrentTime() + seconds;
+    player.seekTo(Math.max(0, t), true);
+    showControls();
+}
+
+const MIN_SPEED = 0.5;
+const MAX_SPEED = 2.0;
+
+function adjustSpeed(delta) {
+    if (!player) return;
+    let rate = Math.round((currentPlaybackRate + delta) * 10) / 10;
+    rate = Math.min(MAX_SPEED, Math.max(MIN_SPEED, rate));
+    if (rate === currentPlaybackRate) { showControls(); return; }
+    player.setPlaybackRate(rate);
+    currentPlaybackRate = rate;
+    updateSpeedDisplay();
+    showControls();
+}
+
+function updateSpeedDisplay() {
+    const display = document.getElementById('pc-speed-display');
+    if (display) display.textContent = currentPlaybackRate.toFixed(1) + 'x';
+
+    const downBtn = document.getElementById('pc-speed-down');
+    const upBtn = document.getElementById('pc-speed-up');
+    if (downBtn) downBtn.disabled = currentPlaybackRate <= MIN_SPEED;
+    if (upBtn) upBtn.disabled = currentPlaybackRate >= MAX_SPEED;
+}
+
+function onSeekClick(e) {
+    if (!player) return;
+    const track = document.getElementById('pc-seek-track');
+    const rect = track.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const frac = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    const duration = player.getDuration();
+    if (duration) player.seekTo(duration * frac, true);
+    showControls();
+}
+
+function formatTime(sec) {
+    if (!isFinite(sec) || sec < 0) sec = 0;
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function updateProgressUI() {
+    if (!player || showingScore) return;
+    let current = 0, duration = 0;
+    try {
+        current = player.getCurrentTime() || 0;
+        duration = player.getDuration() || 0;
+    } catch (e) { return; }
+
+    const fill = document.getElementById('pc-seek-fill');
+    const handle = document.getElementById('pc-seek-handle');
+    const curEl = document.getElementById('pc-time-current');
+    const durEl = document.getElementById('pc-time-duration');
+    if (!fill) return;
+
+    const pct = duration ? (current / duration) * 100 : 0;
+    fill.style.width = pct + '%';
+    handle.style.left = pct + '%';
+    if (curEl) curEl.textContent = formatTime(current);
+    if (durEl) durEl.textContent = formatTime(duration);
+
+    const state = player.getPlayerState();
+    setPlayPauseIcon(state === 1);
 }
 
 // ══════════════════════════════════════
@@ -945,6 +1258,7 @@ function renderVideo() {
     currentTitle = newTitle;
 
     if (player) { try { player.destroy(); } catch(e) {} player = null; }
+    if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
 
     if (!newId) {
         panel.innerHTML = `
@@ -960,7 +1274,45 @@ function renderVideo() {
         panel.innerHTML = `
             <div id="yt-player"></div>
             <div class="video-blocker"></div>
-            <div class="queue-strip" id="queue-strip"></div>`;
+            <div class="queue-strip" id="queue-strip"></div>
+            <div class="player-controls" id="player-controls">
+                <div class="pc-panel">
+                    <div class="pc-seek-row">
+                        <span class="pc-time" id="pc-time-current">0:00</span>
+                        <div class="pc-seek-track" id="pc-seek-track">
+                            <div class="pc-seek-bg"></div>
+                            <div class="pc-seek-fill" id="pc-seek-fill"></div>
+                            <div class="pc-seek-handle" id="pc-seek-handle"></div>
+                        </div>
+                        <span class="pc-time pc-time-end" id="pc-time-duration">0:00</span>
+                    </div>
+                    <div class="pc-btn-row">
+                        <div class="pc-left">
+                        <button class="pc-btn" id="pc-rewind" title="Back 10s">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M11.99 5V1l-5 5 5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8zm-2.5 10.5v-5l-1.5.75v.75l.7-.35v3.85h.8z"/></svg>
+                        </button>
+                        <button class="pc-btn" id="pc-playpause" title="Play/Pause">
+                            <svg id="pc-play-icon" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="pc-pause-icon" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" style="display:none"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+                        </button>
+                        <button class="pc-btn" id="pc-forward" title="Forward 10s">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M12.01 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg>
+                        </button>
+                    </div>
+                    <div class="pc-right">
+                        <div class="pc-speed-group" id="pc-speed-group">
+                            <button class="pc-btn pc-speed-btn" id="pc-speed-down" title="Slower">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="0.8em" height="0.8em"><path d="M19 13H5v-2h14v2z"/></svg>
+                            </button>
+                            <span class="pc-speed-display" id="pc-speed-display">1.0x</span>
+                            <button class="pc-btn pc-speed-btn" id="pc-speed-up" title="Faster">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="0.8em" height="0.8em"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>`;
 
         player = new YT.Player('yt-player', {
             videoId: newId,
