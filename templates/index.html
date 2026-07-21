@@ -136,12 +136,22 @@
             position: absolute; left: 0; height: 6px; width: 0%;
             border-radius: 999px;
             background: linear-gradient(90deg, var(--pink), var(--blue));
+            transition: width 0.5s linear;
         }
         .pc-seek-handle {
             position: absolute; left: 0%; top: 50%;
             width: 18px; height: 18px; border-radius: 50%;
             background: #fff; transform: translate(-50%, -50%);
             box-shadow: 0 0 0 4px rgba(255,45,120,0.3), 0 2px 6px rgba(0,0,0,0.5);
+            transition: left 0.5s linear, width 0.15s ease, height 0.15s ease;
+        }
+        .pc-seek-track.dragging .pc-seek-fill,
+        .pc-seek-track.dragging .pc-seek-handle {
+            transition: none;
+        }
+        .pc-seek-track.dragging .pc-seek-handle {
+            width: 22px; height: 22px;
+            box-shadow: 0 0 0 6px rgba(255,45,120,0.35), 0 2px 8px rgba(0,0,0,0.6);
         }
 
         .pc-btn-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
@@ -166,39 +176,158 @@
         }
         .pc-btn#pc-playpause:hover { background: #ff5590; }
 
-        .pc-speed-group {
-            display: flex; align-items: center; gap: 0.5rem;
+        .pc-speed-group { display: flex; align-items: center; }
+        .pc-speed-toggle {
             background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.14);
-            border-radius: 999px; padding: 0.25rem;
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 999px;
+            color: #fff;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem; letter-spacing: 1px;
+            padding: 0.55rem 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
         }
-        .pc-speed-btn {
-            background: rgba(255,255,255,0.08); border: none;
-            color: #fff; font-size: 1.1rem; font-weight: 700;
-            width: 38px; height: 38px; border-radius: 50%;
+        .pc-speed-toggle:hover { background: rgba(255,255,255,0.2); }
+        .pc-speed-toggle:active { transform: scale(0.95); }
+
+        .speed-overlay {
+    position: absolute; z-index: 60;
+    right: 1.5rem; bottom: 6.5rem;
+    width: 320px; max-width: calc(100vw - 2rem);
+    max-height: calc(100dvh - 8rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: rgba(28,28,36,0.92);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 20px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 1.1rem 1.2rem 1.3rem;
+    opacity: 0; pointer-events: none;
+    transform: translateY(8px) scale(0.95);
+    transform-origin: bottom right;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    color: #fff;
+}
+.speed-overlay.visible { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+
+        .so-header {
+    width: 100%;
+    display: flex; align-items: center; gap: 0.7rem;
+    margin-bottom: 1.1rem;
+}
+        .so-back {
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 50%;
+            width: 42px; height: 42px;
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .so-back:hover { background: rgba(255,255,255,0.2); }
+        .so-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+
+        .so-display {
+    font-size: 1.5rem; font-weight: 700; color: #fff;
+    margin-bottom: 0.9rem; letter-spacing: 1px;
+}
+
+        .so-slider-row {
+            width: 100%;
+            display: flex; align-items: center; gap: 0.7rem;
+            margin-bottom: 1.1rem;
+        }
+        .so-step {
+            flex-shrink: 0;
+            width: 42px; height: 42px; border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #fff; font-size: 1.3rem; font-weight: 700;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
         }
-        .pc-speed-btn:hover { background: rgba(255,45,120,0.4); }
-        .pc-speed-btn:active { transform: scale(0.88); }
-        .pc-speed-btn:disabled {
-            opacity: 0.3; cursor: not-allowed;
-            background: rgba(255,255,255,0.08); transform: none;
+        .so-step:hover { background: rgba(255,255,255,0.2); }
+        .so-step:active { transform: scale(0.9); }
+
+        .so-slider {
+            -webkit-appearance: none; appearance: none;
+            flex: 1; height: 4px; border-radius: 999px;
+            background: #fff 0% 0% / 50% 100% no-repeat, rgba(255,255,255,0.25);
+            cursor: pointer; outline: none;
         }
-        .pc-speed-display {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1rem; letter-spacing: 1px;
-            color: var(--pink);
-            min-width: 44px; text-align: center;
+        .so-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .so-slider::-moz-range-thumb {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #fff; border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .so-slider::-moz-range-track {
+            height: 4px; border-radius: 999px; background: rgba(255,255,255,0.25);
+        }
+
+        .so-presets {
+            display: flex; gap: 0.4rem; flex-wrap: wrap;
+            justify-content: center; width: 100%;
+        }
+        .so-preset {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.16);
+            color: #fff; font-size: 0.85rem; font-weight: 600;
+            padding: 0.5rem 1.1rem; border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .so-preset:hover { background: rgba(255,255,255,0.2); }
+        .so-preset.active { background: #fff; color: #000; font-weight: 700; }
+
+        @media (max-width: 640px) {
+            .speed-overlay {
+                right: 0.6rem; left: 0.6rem; bottom: 5.5rem;
+                width: auto;
+                max-height: calc(100dvh - 7rem);
+                padding: 1rem 1rem 1.1rem;
+                border-radius: 18px;
+            }
+            .so-header { margin-bottom: 0.9rem; }
+            .so-display { font-size: 1.3rem; margin-bottom: 0.7rem; }
+            .so-slider-row { margin-bottom: 0.9rem; gap: 0.6rem; }
+            .so-presets { gap: 0.35rem; }
+            .so-preset { font-size: 0.72rem; padding: 0.4rem 0.65rem; }
+            .so-step { width: 38px; height: 38px; font-size: 1.15rem; }
+        }
+
+        @media (max-width: 380px) {
+            .speed-overlay {
+                right: 0.4rem; left: 0.4rem; bottom: 4.8rem;
+                padding: 0.85rem 0.8rem 0.9rem;
+            }
+            .so-title { font-size: 0.95rem; }
+            .so-display { font-size: 1.15rem; margin-bottom: 0.55rem; }
+            .so-slider-row { gap: 0.5rem; margin-bottom: 0.7rem; }
+            .so-step { width: 34px; height: 34px; font-size: 1rem; }
+            .so-presets { gap: 0.3rem; }
+            .so-preset { font-size: 0.66rem; padding: 0.35rem 0.55rem; }
         }
 
         @media (max-width: 900px) {
             .pc-panel { padding: 0.8rem 1rem; border-radius: 18px; gap: 0.6rem; }
             .pc-btn { width: 52px; height: 52px; font-size: 1.25rem; }
             .pc-btn#pc-playpause { width: 60px; height: 60px; font-size: 1.5rem; }
-            .pc-speed-btn { width: 40px; height: 40px; font-size: 1.15rem; }
-            .pc-speed-display { font-size: 1.05rem; }
+            .pc-speed-toggle { font-size: 1.05rem; padding: 0.6rem 1.2rem; }
         }
 
         @media (max-width: 640px) {
@@ -209,8 +338,7 @@
             .pc-time { font-size: 0.7rem; min-width: 32px; }
             .pc-seek-track { height: 24px; }
             .pc-seek-handle { width: 16px; height: 16px; }
-            .pc-speed-btn { width: 36px; height: 36px; font-size: 1rem; }
-            .pc-speed-display { font-size: 0.9rem; min-width: 38px; }
+            .pc-speed-toggle { font-size: 0.92rem; padding: 0.5rem 1rem; }
             .pc-btn-row { gap: 0.5rem; }
             .pc-left, .pc-right { gap: 0.5rem; }
         }
@@ -221,7 +349,7 @@
             .pc-btn { width: 40px; height: 40px; font-size: 1rem; }
             .pc-btn#pc-playpause { width: 46px; height: 46px; font-size: 1.15rem; }
             .pc-seek-track { height: 20px; }
-            .pc-speed-btn { width: 32px; height: 32px; font-size: 0.9rem; }
+            .pc-speed-toggle { font-size: 0.85rem; padding: 0.4rem 0.8rem; }
         }
 
         /* Start screen */
@@ -616,6 +744,21 @@
             .score-content { gap: 0.4rem; }
             .score-ring-wrap { width: min(22vh, 160px); height: min(22vh, 160px); }
             .score-remark { font-size: 1.1rem; }
+
+            .speed-overlay {
+                right: 0.6rem; left: auto; bottom: 3.6rem;
+                width: 280px; max-width: calc(100vw - 1.2rem);
+                max-height: calc(100dvh - 5rem);
+                padding: 0.7rem 0.9rem 0.8rem;
+                border-radius: 16px;
+            }
+            .so-header { margin-bottom: 0.5rem; }
+            .so-title { font-size: 0.85rem; }
+            .so-display { font-size: 1.05rem; margin-bottom: 0.45rem; }
+            .so-slider-row { margin-bottom: 0.5rem; gap: 0.5rem; }
+            .so-step { width: 30px; height: 30px; font-size: 0.95rem; }
+            .so-presets { gap: 0.3rem; }
+            .so-preset { font-size: 0.62rem; padding: 0.3rem 0.5rem; }
         }
 
         /* ── Rotate Device Prompt (mobile only, toggle-controlled) ── */
@@ -748,7 +891,7 @@ if (window.innerWidth < 1100 && window.innerHeight < 600 && window.devicePixelRa
 <div id="app">
     <header class="topbar">
         <div class="logo">🎤 KARAOKE</div>
-        <button class="landscape-toggle" id="landscape-toggle" onclick="toggleLandscapeLock()">🔒 Landscape</button>
+        <button class="landscape-toggle" id="landscape-toggle" onclick="toggleLandscapeLock()">Landscape</button>
         <div class="remote-hint">Add songs at <b>/search</b></div>
     </header>
 
@@ -847,7 +990,7 @@ function isMobileDevice() {
 function updateLandscapeToggleBtn(enabled) {
     const btn = document.getElementById('landscape-toggle');
     if (!btn) return;
-    btn.textContent = enabled ? '🔒 Landscape' : '🔓 Landscape';
+    btn.textContent = enabled ? 'Landscape' : 'Landscape';
     btn.classList.toggle('on', enabled);
 }
 
@@ -923,6 +1066,12 @@ function setupPlayerControls() {
     controls.onmousemove = showControls;
     controls.ontouchstart = showControls;
 
+    const speedOverlayEl = document.getElementById('speed-overlay');
+    if (speedOverlayEl) {
+        speedOverlayEl.onmousemove = showControls;
+        speedOverlayEl.ontouchstart = showControls;
+    }
+
     const playPauseBtn = document.getElementById('pc-playpause');
     if (playPauseBtn) playPauseBtn.onclick = togglePlayPause;
 
@@ -932,14 +1081,27 @@ function setupPlayerControls() {
     const forwardBtn = document.getElementById('pc-forward');
     if (forwardBtn) forwardBtn.onclick = () => skipBy(10);
 
+    const speedToggle = document.getElementById('pc-speed-toggle');
+    if (speedToggle) speedToggle.onclick = toggleSpeedOverlay;
+
+
+    const soSlider = document.getElementById('so-slider');
+    if (soSlider) soSlider.addEventListener('input', onSpeedSliderInput);
+
+    const soMinus = document.getElementById('so-minus');
+    if (soMinus) soMinus.onclick = () => stepSpeed(-0.05);
+
+    const soPlus = document.getElementById('so-plus');
+    if (soPlus) soPlus.onclick = () => stepSpeed(0.05);
+
+    document.querySelectorAll('.so-preset').forEach(btn => {
+        btn.onclick = () => setSpeedExact(parseFloat(btn.dataset.rate));
+    });
+
     updateSpeedDisplay();
-    const speedDownBtn = document.getElementById('pc-speed-down');
-    if (speedDownBtn) speedDownBtn.onclick = () => adjustSpeed(-0.5);
-    const speedUpBtn = document.getElementById('pc-speed-up');
-    if (speedUpBtn) speedUpBtn.onclick = () => adjustSpeed(0.5);
 
     const seekTrack = document.getElementById('pc-seek-track');
-    if (seekTrack) seekTrack.onclick = onSeekClick;
+    if (seekTrack) setupSeekDrag(seekTrack);
 
     showControls();
     if (progressTimer) clearInterval(progressTimer);
@@ -951,7 +1113,11 @@ function showControls() {
     if (!controls) return;
     controls.classList.add('visible');
     if (controlsHideTimer) clearTimeout(controlsHideTimer);
-    controlsHideTimer = setTimeout(() => controls.classList.remove('visible'), 4000);
+    controlsHideTimer = setTimeout(() => {
+        controls.classList.remove('visible');
+        const overlay = document.getElementById('speed-overlay');
+        if (overlay) overlay.classList.remove('visible');
+    }, 4000);
 }
 
 function hideControls() {
@@ -959,6 +1125,8 @@ function hideControls() {
     if (!controls) return;
     if (controlsHideTimer) { clearTimeout(controlsHideTimer); controlsHideTimer = null; }
     controls.classList.remove('visible');
+    const overlay = document.getElementById('speed-overlay');
+    if (overlay) overlay.classList.remove('visible');
 }
 
 function toggleControlsVisibility() {
@@ -998,39 +1166,137 @@ function skipBy(seconds) {
     showControls();
 }
 
-const MIN_SPEED = 0.5;
+const MIN_SPEED = 0.25;
 const MAX_SPEED = 2.0;
 
-function adjustSpeed(delta) {
+function toggleSpeedOverlay() {
+    const overlay = document.getElementById('speed-overlay');
+    if (!overlay) return;
+    if (overlay.classList.contains('visible')) {
+        closeSpeedOverlay();
+    } else {
+        openSpeedOverlay();
+    }
+}
+
+function openSpeedOverlay() {
+    const overlay = document.getElementById('speed-overlay');
+    if (!overlay) return;
+    overlay.classList.add('visible');
+    updateSpeedDisplay();
+    showControls();
+}
+
+function closeSpeedOverlay() {
+    const overlay = document.getElementById('speed-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('visible');
+    showControls();
+}
+
+function setSpeedExact(rate) {
     if (!player) return;
-    let rate = Math.round((currentPlaybackRate + delta) * 10) / 10;
     rate = Math.min(MAX_SPEED, Math.max(MIN_SPEED, rate));
-    if (rate === currentPlaybackRate) { showControls(); return; }
     player.setPlaybackRate(rate);
     currentPlaybackRate = rate;
     updateSpeedDisplay();
     showControls();
 }
 
-function updateSpeedDisplay() {
-    const display = document.getElementById('pc-speed-display');
-    if (display) display.textContent = currentPlaybackRate.toFixed(1) + 'x';
-
-    const downBtn = document.getElementById('pc-speed-down');
-    const upBtn = document.getElementById('pc-speed-up');
-    if (downBtn) downBtn.disabled = currentPlaybackRate <= MIN_SPEED;
-    if (upBtn) upBtn.disabled = currentPlaybackRate >= MAX_SPEED;
+function stepSpeed(delta) {
+    if (!player) return;
+    let rate = Math.round((currentPlaybackRate + delta) * 20) / 20;
+    setSpeedExact(rate);
 }
 
-function onSeekClick(e) {
+function onSpeedSliderInput(e) {
     if (!player) return;
-    const track = document.getElementById('pc-seek-track');
-    const rect = track.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const frac = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-    const duration = player.getDuration();
-    if (duration) player.seekTo(duration * frac, true);
-    showControls();
+    const rate = Math.round(parseFloat(e.target.value) * 20) / 20; // snap to 0.05
+    setSpeedExact(rate);
+}
+
+function updateSpeedDisplay() {
+    const label = document.getElementById('pc-speed-label');
+    if (label) label.textContent = currentPlaybackRate.toFixed(2) + 'x';
+
+    const soDisplay = document.getElementById('so-display');
+    if (soDisplay) soDisplay.textContent = currentPlaybackRate.toFixed(2) + 'x';
+
+    const slider = document.getElementById('so-slider');
+    if (slider) {
+        slider.value = currentPlaybackRate;
+        const pct = ((currentPlaybackRate - MIN_SPEED) / (MAX_SPEED - MIN_SPEED)) * 100;
+        slider.style.background = `#fff 0% 0% / ${pct}% 100% no-repeat, rgba(255,255,255,0.25)`;
+    }
+
+    document.querySelectorAll('.so-preset').forEach(btn => {
+        const r = parseFloat(btn.dataset.rate);
+        btn.classList.toggle('active', Math.abs(r - currentPlaybackRate) < 0.001);
+    });
+}
+
+let isSeeking = false;
+
+function setupSeekDrag(track) {
+    const fill = document.getElementById('pc-seek-fill');
+    const handle = document.getElementById('pc-seek-handle');
+    const curEl = document.getElementById('pc-time-current');
+
+    function getClientX(e) {
+        if (e.touches && e.touches.length) return e.touches[0].clientX;
+        if (e.changedTouches && e.changedTouches.length) return e.changedTouches[0].clientX;
+        return e.clientX;
+    }
+
+    function fracFromClientX(clientX) {
+        const rect = track.getBoundingClientRect();
+        return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    }
+
+    function updateUI(frac) {
+        const pct = frac * 100;
+        fill.style.width = pct + '%';
+        handle.style.left = pct + '%';
+        if (curEl && player) {
+            curEl.textContent = formatTime((player.getDuration() || 0) * frac);
+        }
+    }
+
+    function start(e) {
+        if (!player) return;
+        isSeeking = true;
+        track.classList.add('dragging');
+        updateUI(fracFromClientX(getClientX(e)));
+        showControls();
+        if (controlsHideTimer) clearTimeout(controlsHideTimer);
+        document.addEventListener('mousemove', move);
+        document.addEventListener('touchmove', move, { passive: false });
+        document.addEventListener('mouseup', end);
+        document.addEventListener('touchend', end);
+    }
+
+    function move(e) {
+        if (!isSeeking) return;
+        e.preventDefault();
+        updateUI(fracFromClientX(getClientX(e)));
+    }
+
+    function end(e) {
+        if (!isSeeking) return;
+        isSeeking = false;
+        track.classList.remove('dragging');
+        const frac = fracFromClientX(getClientX(e));
+        const duration = player.getDuration();
+        if (duration) player.seekTo(duration * frac, true);
+        showControls();
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('touchmove', move);
+        document.removeEventListener('mouseup', end);
+        document.removeEventListener('touchend', end);
+    }
+
+    track.addEventListener('mousedown', start);
+    track.addEventListener('touchstart', start, { passive: true });
 }
 
 function formatTime(sec) {
@@ -1041,7 +1307,7 @@ function formatTime(sec) {
 }
 
 function updateProgressUI() {
-    if (!player || showingScore) return;
+    if (!player || showingScore || isSeeking) return;
     let current = 0, duration = 0;
     try {
         current = player.getCurrentTime() || 0;
@@ -1300,17 +1566,33 @@ function renderVideo() {
                         </button>
                     </div>
                     <div class="pc-right">
-                        <div class="pc-speed-group" id="pc-speed-group">
-                            <button class="pc-btn pc-speed-btn" id="pc-speed-down" title="Slower">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="0.8em" height="0.8em"><path d="M19 13H5v-2h14v2z"/></svg>
-                            </button>
-                            <span class="pc-speed-display" id="pc-speed-display">1.0x</span>
-                            <button class="pc-btn pc-speed-btn" id="pc-speed-up" title="Faster">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="0.8em" height="0.8em"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                            </button>
+                            <div class="pc-speed-group" id="pc-speed-group">
+                                <button class="pc-speed-toggle" id="pc-speed-toggle" title="Playback speed">
+                                    <span id="pc-speed-label">1.00x</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    </div>
+                </div>
+            </div>
+            <div class="speed-overlay" id="speed-overlay">
+                <div class="so-header">
+                    <span class="so-title">Playback speed</span>
+                </div>
+                <div class="so-display" id="so-display">1.00x</div>
+                <div class="so-slider-row">
+                    <button class="so-step" id="so-minus" title="Slower">−</button>
+                    <input type="range" class="so-slider" id="so-slider" min="0.25" max="2" step="0.05" value="1">
+                    <button class="so-step" id="so-plus" title="Faster">+</button>
+                </div>
+                <div class="so-presets" id="so-presets">
+                    <button class="so-preset" data-rate="0.5">0.5</button>
+                    <button class="so-preset" data-rate="0.75">0.75</button>
+                    <button class="so-preset active" data-rate="1">1.0</button>
+                    <button class="so-preset" data-rate="1.25">1.25</button>
+                    <button class="so-preset" data-rate="1.5">1.5</button>
+                    <button class="so-preset" data-rate="1.75">1.75</button>
+                    <button class="so-preset" data-rate="2">2.0</button>
                 </div>
             </div>`;
 

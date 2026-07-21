@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 import re
+from datetime import datetime
 from youtube_api import bp as youtube_bp
 
 app = Flask(__name__)
@@ -35,11 +36,38 @@ class QueueItem(db.Model):
     channel = db.Column(db.String(200), default='')
 
 
+class Playlist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class PlaylistSong(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
+    video_id = db.Column(db.String(20), nullable=False)
+    title = db.Column(db.String(300), nullable=False)
+    channel = db.Column(db.String(200), default='')
+
+
 # ── Queue helpers (DB-backed, shared across all clients) ──────────────────────
 
 def get_queue():
     items = QueueItem.query.order_by(QueueItem.id).all()
     return [{'video_id': i.video_id, 'title': i.title, 'channel': i.channel} for i in items]
+
+
+def get_playlists():
+    pls = Playlist.query.order_by(Playlist.id).all()
+    result = []
+    for p in pls:
+        songs = PlaylistSong.query.filter_by(playlist_id=p.id).order_by(PlaylistSong.id).all()
+        result.append({
+            'id': p.id,
+            'name': p.name,
+            'songs': [{'id': s.id, 'video_id': s.video_id, 'title': s.title, 'channel': s.channel} for s in songs]
+        })
+    return result
 
 
 def extract_video_id(url: str):
@@ -184,6 +212,80 @@ def clear_queue():
     QueueItem.query.delete()
     db.session.commit()
     return jsonify({'success': True, 'queue': []})
+
+
+# ── Playlist endpoints ─────────────────────────────────────────────────────
+
+@app.route('/playlists')
+def playlists():
+    return jsonify({'playlists': get_playlists()})
+
+
+@app.route('/create_playlist', methods=['POST'])
+def create_playlist():
+    name = request.form.get('name', '').strip()
+    if not name:
+        return jsonify({'success': False, 'error': 'Name required'})
+    db.session.add(Playlist(name=name))
+    db.session.commit()
+    return jsonify({'success': True, 'playlists': get_playlists()})
+
+
+@app.route('/delete_playlist', methods=['POST'])
+def delete_playlist():
+    pid = int(request.form.get('playlist_id', -1))
+    p = Playlist.query.get(pid)
+    if p:
+        PlaylistSong.query.filter_by(playlist_id=pid).delete()
+        db.session.delete(p)
+        db.session.commit()
+        return jsonify({'success': True, 'playlists': get_playlists()})
+    return jsonify({'success': False})
+
+
+@app.route('/add_to_playlist', methods=['POST'])
+def add_to_playlist():
+    pid = int(request.form.get('playlist_id', -1))
+    video_id = request.form.get('video_id')
+    title = request.form.get('title')
+    channel = request.form.get('channel', '')
+    if pid and video_id and title:
+        db.session.add(PlaylistSong(playlist_id=pid, video_id=video_id, title=title, channel=channel))
+        db.session.commit()
+        return jsonify({'success': True, 'playlists': get_playlists()})
+    return jsonify({'success': False})
+
+
+@app.route('/remove_from_playlist', methods=['POST'])
+def remove_from_playlist():
+    song_id = int(request.form.get('song_id', -1))
+    s = PlaylistSong.query.get(song_id)
+    if s:
+        db.session.delete(s)
+        db.session.commit()
+        return jsonify({'success': True, 'playlists': get_playlists()})
+    return jsonify({'success': False})
+
+
+@app.route('/queue_playlist', methods=['POST'])
+def queue_playlist():
+    pid = int(request.form.get('playlist_id', -1))
+    songs = PlaylistSong.query.filter_by(playlist_id=pid).order_by(PlaylistSong.id).all()
+    for s in songs:
+        db.session.add(QueueItem(video_id=s.video_id, title=s.title, channel=s.channel))
+    db.session.commit()
+    return jsonify({'success': True, 'queue': get_queue()})
+
+
+@app.route('/queue_playlist_song', methods=['POST'])
+def queue_playlist_song():
+    song_id = int(request.form.get('song_id', -1))
+    s = PlaylistSong.query.get(song_id)
+    if s:
+        db.session.add(QueueItem(video_id=s.video_id, title=s.title, channel=s.channel))
+        db.session.commit()
+        return jsonify({'success': True, 'queue': get_queue()})
+    return jsonify({'success': False})
 
 
 # ── Seed ──────────────────────────────────────────────────────────────────────
