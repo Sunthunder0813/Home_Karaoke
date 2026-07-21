@@ -428,8 +428,29 @@
             display: flex; align-items: center; gap: 0.7rem;
             padding: 0.8rem 0;
             border-bottom: 1px solid var(--border);
+            position: relative;
+            transition: transform 0.18s ease;
         }
         .queue-item.current { background: rgba(255,45,120,0.07); margin: 0 -1rem; padding: 0.8rem 1rem; border-left: 3px solid var(--magenta); }
+        .q-drag-handle {
+            flex-shrink: 0; width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-faint); cursor: grab;
+            touch-action: none; -webkit-user-select: none; user-select: none;
+            border-radius: 6px;
+        }
+        .q-drag-handle .icon { fill: currentColor; stroke: none; }
+        .q-drag-handle:hover { color: var(--text-dim); background: rgba(255,255,255,0.05); }
+        .q-drag-handle:active { cursor: grabbing; }
+        .q-drag-handle.spacer { visibility: hidden; cursor: default; }
+        .queue-item.dragging {
+            transition: none; z-index: 50;
+            background: var(--card-2);
+            border-radius: 10px;
+            box-shadow: 0 14px 30px rgba(0,0,0,0.55), 0 0 0 1px var(--border-strong);
+            cursor: grabbing;
+        }
+        .queue-item.drag-disabled { touch-action: pan-y; }
         .q-num {
             font-family: var(--font-display);
             font-size: 1.3rem; color: var(--text-faint);
@@ -504,6 +525,7 @@
     <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 4.2 15.5 12 5 19.8V4.2Z"/><path d="M19 5v14"/></symbol>
     <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></symbol>
     <symbol id="i-note" viewBox="0 0 24 24"><circle cx="7.5" cy="17" r="3"/><path d="M10.5 17V4.5l8-2v12.5"/><circle cx="18.5" cy="14.5" r="3"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></symbol>
   </defs>
 </svg>
 
@@ -986,11 +1008,19 @@ async function clearQueue() {
     if (data.success) { queue = []; renderQueue(); }
 }
 
+let queueDragActive = false; // true while a drag gesture is in progress — pauses poll overwrites
+let _queueKeyCounter = 0;
+
 function renderQueue() {
     const list = document.getElementById('queue-list');
     const badge = document.getElementById('q-badge');
     const skipBtn = document.getElementById('skip-btn');
     const clearBtn = document.getElementById('clear-btn');
+
+    // Every item needs a stable client-side key so we can read the true
+    // order back out of the DOM after a drag, even if two songs share
+    // the same title/video_id.
+    queue.forEach(item => { if (!item._key) item._key = 'k' + (_queueKeyCounter++); });
 
     badge.textContent = queue.length;
     skipBtn.disabled = queue.length <= 1;
@@ -1005,7 +1035,10 @@ function renderQueue() {
     }
 
     list.innerHTML = queue.map((item, i) => `
-        <div class="queue-item${i === 0 ? ' current' : ''}">
+        <div class="queue-item${i === 0 ? ' current' : ''}" data-key="${item._key}">
+            ${i === 0
+                ? '<span class="q-drag-handle spacer">' + icon('grip') + '</span>'
+                : '<span class="q-drag-handle" title="Drag to reorder">' + icon('grip') + '</span>'}
             <span class="q-num">${i + 1}</span>
             <img class="q-thumb" src="https://img.youtube.com/vi/${esc(item.video_id)}/default.jpg" alt="">
             <div class="q-info">
@@ -1014,13 +1047,179 @@ function renderQueue() {
             </div>
             <button class="btn-remove-x" onclick="removeFromQueue(${i})">${icon('x')}</button>
         </div>`).join('');
+
+    attachQueueDragHandlers();
+}
+
+// ── Queue drag-to-reorder (Pointer Events: works for mouse + touch) ──
+//
+// Strategy: as the pointer moves, we physically move the dragged row's DOM
+// node past whichever sibling it has crossed (via insertBefore) and FLIP-
+// animate that sibling into its new slot. Because the on-screen DOM order
+// *is* the source of truth throughout the drag, the final order read off
+// at drop time is always correct by construction — no index arithmetic
+// that can drift out of sync with what the user sees.
+function attachQueueDragHandlers() {
+    document.querySelectorAll('#queue-list .q-drag-handle:not(.spacer)').forEach(handle => {
+        handle.addEventListener('pointerdown', onQueueDragStart);
+    });
+}
+
+function onQueueDragStart(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    const handle = e.currentTarget;
+    const rowEl = handle.closest('.queue-item');
+    const list = document.getElementById('queue-list');
+    const startY = e.clientY;
+
+    let dragging = false;
+    let rafPending = false;
+    let startRect = null;
+
+    handle.setPointerCapture(e.pointerId);
+
+    function activate() {
+        dragging = true;
+        queueDragActive = true;
+        startRect = rowEl.getBoundingClientRect();
+        // Take the row fully out of normal document flow so the list can close
+        // up cleanly behind it — otherwise its original flow slot stays reserved
+        // as an empty gap the whole time it's being dragged elsewhere.
+        rowEl.style.position = 'fixed';
+        rowEl.style.left = startRect.left + 'px';
+        rowEl.style.top = startRect.top + 'px';
+        rowEl.style.width = startRect.width + 'px';
+        rowEl.style.margin = '0';
+        rowEl.style.transition = 'none';
+        rowEl.classList.add('dragging');
+    }
+
+    function checkSwap() {
+        const rows = Array.from(list.querySelectorAll('.queue-item')).filter(r => !r.classList.contains('current'));
+        const draggedIndex = rows.indexOf(rowEl);
+        const draggedRect = rowEl.getBoundingClientRect();
+        const draggedCenter = draggedRect.top + draggedRect.height / 2;
+
+        for (let j = 0; j < rows.length; j++) {
+            const sib = rows[j];
+            if (sib === rowEl) continue;
+            const sibRect = sib.getBoundingClientRect();
+            const sibCenter = sibRect.top + sibRect.height / 2;
+
+            if (j > draggedIndex && draggedCenter > sibCenter) {
+                flipMove(sib, () => list.insertBefore(sib, rowEl));
+                break;
+            }
+            if (j < draggedIndex && draggedCenter < sibCenter) {
+                flipMove(sib, () => list.insertBefore(sib, rowEl.nextSibling));
+                break;
+            }
+        }
+    }
+
+    function flipMove(el, mutate) {
+        const first = el.getBoundingClientRect();
+        mutate();
+        const last = el.getBoundingClientRect();
+        const deltaY = first.top - last.top;
+        if (deltaY) {
+            el.style.transition = 'none';
+            el.style.transform = `translateY(${deltaY}px)`;
+            requestAnimationFrame(() => {
+                el.style.transition = 'transform 0.18s ease';
+                el.style.transform = '';
+            });
+        }
+    }
+
+    function onMove(ev) {
+        const dy = ev.clientY - startY;
+        if (!dragging) {
+            if (Math.abs(dy) < 4) return; // ignore tiny jitter so a tap doesn't misfire
+            activate();
+        }
+        rowEl.style.top = (startRect.top + dy) + 'px';
+        if (!rafPending) {
+            rafPending = true;
+            requestAnimationFrame(() => { rafPending = false; checkSwap(); });
+        }
+    }
+
+    function onUp(ev) {
+        handle.releasePointerCapture(ev.pointerId);
+        handle.removeEventListener('pointermove', onMove);
+        handle.removeEventListener('pointerup', onUp);
+        handle.removeEventListener('pointercancel', onUp);
+
+        if (!dragging) return;
+
+        // Siblings have been shuffling around the dragged row this whole time via
+        // insertBefore, but the dragged row itself was never actually relocated in
+        // the DOM — it was only ever visually offset with a transform. Snapping that
+        // transform to 0 without first placing it in its real slot is what caused
+        // the row to land on top of / behind its neighbors. So: place it for real,
+        // using its current on-screen center to find where it belongs among the
+        // (already-reordered) siblings, then clear the transform.
+        const rows = Array.from(list.querySelectorAll('.queue-item'))
+            .filter(r => !r.classList.contains('current') && r !== rowEl);
+        const draggedRect = rowEl.getBoundingClientRect();
+        const draggedCenter = draggedRect.top + draggedRect.height / 2;
+
+        let insertBeforeEl = null;
+        for (const sib of rows) {
+            const r = sib.getBoundingClientRect();
+            if (draggedCenter < r.top + r.height / 2) { insertBeforeEl = sib; break; }
+        }
+        if (insertBeforeEl) list.insertBefore(rowEl, insertBeforeEl);
+        else list.appendChild(rowEl);
+
+        rowEl.style.position = '';
+        rowEl.style.left = '';
+        rowEl.style.top = '';
+        rowEl.style.width = '';
+        rowEl.style.margin = '';
+        rowEl.style.transition = '';
+        rowEl.style.transform = '';
+        rowEl.classList.remove('dragging');
+        queueDragActive = false;
+
+        // Read the final order straight back out of the DOM.
+        const orderedKeys = Array.from(list.querySelectorAll('.queue-item')).map(r => r.dataset.key);
+        const byKey = {};
+        queue.forEach(item => { byKey[item._key] = item; });
+        const newQueue = orderedKeys.map(k => byKey[k]).filter(Boolean);
+
+        if (newQueue.length === queue.length) {
+            persistQueueOrder(newQueue);
+        }
+    }
+
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onUp);
+}
+
+async function persistQueueOrder(newQueue) {
+    const backup = queue;
+    queue = newQueue;
+    renderQueue();
+
+    const fd = new FormData();
+    fd.append('queue', JSON.stringify(queue.map(({ video_id, title, channel }) => ({ video_id, title, channel }))));
+    try {
+        const data = await fetch('/reorder_queue', { method: 'POST', body: fd }).then(r => r.json());
+        if (data.success) queue = data.queue; else queue = backup;
+    } catch { queue = backup; }
+    renderQueue();
 }
 
 // Poll to stay in sync with TV screen
 async function pollQueue() {
+    if (queueDragActive) return; // don't let a poll response fight an in-progress drag
     try {
         const data = await fetch('/api/queue').then(r => r.json());
-        if (JSON.stringify(data.queue) !== JSON.stringify(queue)) {
+        if (JSON.stringify(data.queue) !== JSON.stringify(queue.map(({ video_id, title, channel }) => ({ video_id, title, channel })))) {
             queue = data.queue;
             renderQueue();
         }

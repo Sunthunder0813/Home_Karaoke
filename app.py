@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 import re
+import json
 from datetime import datetime
 from youtube_api import bp as youtube_bp
 
@@ -212,6 +213,35 @@ def clear_queue():
     QueueItem.query.delete()
     db.session.commit()
     return jsonify({'success': True, 'queue': []})
+
+
+@app.route('/reorder_queue', methods=['POST'])
+def reorder_queue():
+    """
+    Persist a drag-and-drop reorder from the remote's Queue tab.
+    The client sends the *entire* desired queue (as JSON: a list of
+    {video_id, title, channel}) and we rewrite the table to match that
+    exact order. Simple full-replace — consistent with how the rest of
+    this app treats QueueItem as denormalized, disposable rows.
+    """
+    try:
+        new_order = json.loads(request.form.get('queue', '[]'))
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'error': 'Bad payload'}), 400
+
+    if not isinstance(new_order, list):
+        return jsonify({'success': False, 'error': 'Bad payload'}), 400
+
+    QueueItem.query.delete()
+    for item in new_order:
+        video_id = (item or {}).get('video_id')
+        title = (item or {}).get('title')
+        channel = (item or {}).get('channel', '')
+        if video_id and title:
+            db.session.add(QueueItem(video_id=video_id, title=title, channel=channel))
+    db.session.commit()
+
+    return jsonify({'success': True, 'queue': get_queue()})
 
 
 # ── Playlist endpoints ─────────────────────────────────────────────────────
